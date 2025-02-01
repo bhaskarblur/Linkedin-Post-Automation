@@ -43,3 +43,33 @@ Please generate LinkedIn post ideas that focus on the following themes:
 Your goal is to provide **engaging, useful, and professional content** that invites conversation, shares valuable knowledge, and enhances the field of System Design and AI.
 `;
 
+export const NoAccessTokenMessage = `No access token found in payload.\nYou need to provide your own access token to upload the post. (We do not store your access token, it's one time use only)`;
+
+export const WaitMessage = `Please wait while we schedule the post...`;
+
+export const PostScheduledMessage = (postId: string) => `Post ${postId} scheduled successfully!`;
+
+export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'\n2. To upload a post to LinkedIn type 'upload_postId_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN'";
+
+export const AcceptMessage = (postId: string) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload_${postId}_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN`;
+
+export const RejectMessage = (postId: string) => `Please provide feedback on why you are rejecting this post. Choose from the options below which you think is the reason:\n1. Image \n2. Content idea\n3. Post content`;
+
+export const FeedbackImprovementMessage = (postId: string) => `Please tell us how you would like to improve this post.\n\nCopy & Follow the format to write your improvement: improvement_${postId}: your improvement message`;
+
+export const RegenerateMessage = (post: any) => `
+                    Regenerate the post based on the following feedbacks.
+                    
+                    **Guidelines for Revisions:**
+                    - If the feedback is related to the *idea* (What is not good: idea), make significant changes to the entire post idea.
+                    - If the feedback is about the *content* (What is not good: content), modify only the content of the post while keeping the main concept intact.
+                    - If the feedback is related to the *image* (What is not good: image), revise the image to better match the content and theme, but don't change the anything else.
+                
+                    **Feedback Summary:**
+                    - *What is not good*: ${post.feedbackTopic}  
+                    - *Improvement*: ${post.feedbackImprovement}
+                
+                    Please ensure that the post aligns with the reviewer's suggestions, maintaining the overall quality while addressing the specific concerns.
+                    `;
+
+export const GenerateMessage = (count: number) => `Generate ${count} posts for LinkedIn.`;

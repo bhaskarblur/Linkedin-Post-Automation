@@ -1,4 +1,5 @@
 import axios from "axios";
+import { AcceptMessage, FeedbackImprovementMessage, InvalidInputMessage, NoAccessTokenMessage, PostScheduledMessage, RejectMessage, WaitMessage } from "../constants/prompts";
 import { invokePostCreation, invokePostCreationWithFeedback } from "../main";
 import { IImage, Post } from "../models/Post"; // Your Post model
 import { handlePostTimeInput } from "./linkedinService";
@@ -149,7 +150,7 @@ export async function processTelegramResponse(message: any) {
             const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
-                text: "No access token found in payload.\nYou need to provide your own access token to upload the post. (We do not store your access token, it's one time use only)",
+                text: NoAccessTokenMessage,
                 parse_mode: undefined,
             });
             return;
@@ -159,7 +160,7 @@ export async function processTelegramResponse(message: any) {
             const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
-                text: 'Please wait while we schedule the post...',
+                text: WaitMessage,
                 parse_mode: undefined,
             });
             const success = await handlePostTimeInput(postId, time, accessToken);
@@ -168,7 +169,7 @@ export async function processTelegramResponse(message: any) {
             }
             await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
                 chat_id: message.from,
-                text: `Post: ${postId} scheduled successfully!`,
+                text: PostScheduledMessage(postId),
                 parse_mode: undefined,
             });
         }
@@ -182,7 +183,7 @@ export async function processTelegramResponse(message: any) {
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
-            text: "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'\n2. To upload a post to LinkedIn type 'upload_postId_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN'",
+            text: InvalidInputMessage,
             parse_mode: undefined,
         });
         return;
@@ -194,7 +195,7 @@ export async function processTelegramResponse(message: any) {
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
-            text: `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload_${postId}_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN`,
+            text: AcceptMessage(postId),
             parse_mode: undefined,
         });
         // Update post status to 'pending'
@@ -209,7 +210,7 @@ export async function processTelegramResponse(message: any) {
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
-            text: 'Please provide feedback on why you are rejecting this post. Choose from the options below which you think is the reason:\n1. Image \n2. Content idea\n3. Post content',
+            text: RejectMessage(postId),
             reply_markup: JSON.stringify({
                 inline_keyboard: [
                     [
@@ -239,7 +240,7 @@ export async function processTelegramResponse(message: any) {
             const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
-                text: `Please tell us how you would like to improve this post.\n\nCopy & Follow the format to write your improvement: improvement_${postId}: your improvement message`,
+                text: FeedbackImprovementMessage(postId),
                 parse_mode: undefined,
             });
 

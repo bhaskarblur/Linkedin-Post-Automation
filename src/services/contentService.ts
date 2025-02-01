@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { OpenAI } from 'openai';
-import { POST_IDEA_PROMPT } from '../constants/prompts';
+import { GenerateMessage, POST_IDEA_PROMPT, RegenerateMessage } from '../constants/prompts';
 import { IPost } from '../models/Post';
 // Define the structure of a post idea
 interface PostIdea {
@@ -30,7 +30,7 @@ export async function generatePostIdeas(count: number): Promise<PostIdea[]> {
             model: 'gpt-4o', // Specify the GPT-4o model
             messages: [
                 { role: 'system', content: POST_IDEA_PROMPT },
-                { role: 'user', content: `Generate ${count} posts for LinkedIn.` },
+                { role: 'user', content: GenerateMessage(count) },
             ],
             max_tokens: 3600, // Adjust based on API limits
             temperature: 0.7, // Controls creativity
@@ -71,20 +71,7 @@ export async function generatePostWithFeedback(post: IPost): Promise<PostIdea | 
                 },
                 {
                     role: 'user',
-                    content: `
-                    Regenerate the post based on the following feedbacks.
-                    
-                    **Guidelines for Revisions:**
-                    - If the feedback is related to the *idea* (What is not good: idea), make significant changes to the entire post idea.
-                    - If the feedback is about the *content* (What is not good: content), modify only the content of the post while keeping the main concept intact.
-                    - If the feedback is related to the *image* (What is not good: image), revise the image to better match the content and theme, but don't change the anything else.
-                
-                    **Feedback Summary:**
-                    - *What is not good*: ${post.feedbackTopic}  
-                    - *Improvement*: ${post.feedbackImprovement}
-                
-                    Please ensure that the post aligns with the reviewer's suggestions, maintaining the overall quality while addressing the specific concerns.
-                    `
+                    content: RegenerateMessage(post)
                 }
             ],
             max_tokens: 3600, // Adjust based on API limits
