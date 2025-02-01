@@ -1,8 +1,7 @@
 import 'dotenv/config';
 import { OpenAI } from 'openai';
 import { POST_IDEA_PROMPT } from '../constants/prompts';
-import { Post } from '../models/Post';
-
+import { IPost } from '../models/Post';
 // Define the structure of a post idea
 interface PostIdea {
     title: string;
@@ -51,12 +50,8 @@ export async function generatePostIdeas(count: number): Promise<PostIdea[]> {
     }
 }
 
-export async function generatePostWithFeedback(postId: string): Promise<PostIdea | null> {
+export async function generatePostWithFeedback(post: IPost): Promise<PostIdea | null> {
     try {
-        const post = await Post.findById(postId);
-        if (!post) {
-            throw new Error('Post not found');
-        }
         // Call the OpenAI API with the GPT-4o model
         const response = await openai.chat.completions.create({
             model: 'gpt-4o', // Specify the GPT-4o model
@@ -77,7 +72,7 @@ export async function generatePostWithFeedback(postId: string): Promise<PostIdea
                     
                     **Guidelines for Revisions:**
                     - If the feedback is related to the *idea* (What is not good: idea), make significant changes to the entire post idea.
-                    - If the feedback is about the *content* (What is not good: content), modify the content of the post while keeping the main concept intact.
+                    - If the feedback is about the *content* (What is not good: content), modify only the content of the post while keeping the main concept intact.
                     - If the feedback is related to the *image* (What is not good: image), revise the image to better match the content and theme, but don't change the anything else.
                 
                     **Feedback Summary:**
@@ -97,18 +92,7 @@ export async function generatePostWithFeedback(postId: string): Promise<PostIdea
         const cleanedResponse = cleanChatGPTResponse(response.choices[0].message?.content || '');
         const idea: PostIdea = JSON.parse(cleanedResponse);
 
-        // Update the post accordingly
-        if (post.feedbackTopic === 'idea') {
-            post.title = idea.title;
-            post.content = idea.content;
-            post.imagePrompt = idea.imagePrompt;
-        } else if (post.feedbackTopic === 'content') {
-            post.content = idea.content;
-        } else if (post.feedbackTopic === 'image') {
-            post.imagePrompt = idea.imagePrompt;
-        }
-        await post.save();
-        console.log('updated post', post);
+        console.log('updated idea:', idea);
         return idea;
     } catch (error) {
         console.error('Error generating post with feedback:', error);

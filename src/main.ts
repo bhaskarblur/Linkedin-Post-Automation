@@ -2,6 +2,7 @@ import bodyParser from 'body-parser';
 import express from 'express';
 import mongoose from 'mongoose';
 import cron from 'node-cron';
+import { Post } from './models/Post';
 import { generatePostIdeas, generatePostWithFeedback } from './services/contentService';
 import { generateImages } from './services/imageService';
 import { savePost } from './services/postService';
@@ -33,12 +34,29 @@ async function invokePostCreation(ideaCount: number) {
 
 export async function invokePostCreationWithFeedback(postId: string) {
     try {
-        const post = await generatePostWithFeedback(postId);
-        if (post) {
-            console.log('Generating Images...');
-            const images = await generateImages(post.imagePrompt, Number(process.env.POST_IMAGE_COUNT) || 1);
-            const savedPost = await savePost({ ...post, generatedImages: images });
-            await sendTelegramMessage(post.title, post.content, images, savedPost.id);
+        const postDetails = await Post.findById(postId);
+        if (!postDetails) {
+            throw new Error('Post not found');
+        }
+        const newPost = await generatePostWithFeedback(postDetails);
+        if (newPost) {
+            // Update the post accordingly
+            if (postDetails.feedbackTopic === 'idea') {
+                postDetails.title = newPost.title;
+                postDetails.content = newPost.content;
+                postDetails.imagePrompt = newPost.imagePrompt;
+            } else if (postDetails.feedbackTopic === 'content') {
+                postDetails.content = newPost.content;
+            } else if (postDetails.feedbackTopic === 'image') {
+                postDetails.imagePrompt = newPost.imagePrompt;
+            }
+            if (postDetails.feedbackTopic == 'image') {
+                console.log('Generating Images...');
+                const images = await generateImages(newPost.imagePrompt, Number(process.env.POST_IMAGE_COUNT) || 1);
+                postDetails.generatedImages = images;
+            }
+            await postDetails.save();
+            await sendTelegramMessage(newPost.title, newPost.content, postDetails.generatedImages, postDetails.id);
         }
     } catch (error) {
         console.error('Error invoking post creation with feedback:', error);
