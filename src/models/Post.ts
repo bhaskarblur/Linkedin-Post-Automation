@@ -27,6 +27,8 @@ export interface IPost extends Document {
     status: 'pending' | 'accepted' | 'rejected' | 'scheduled';
     postTime?: Date;
     createdAt: Date;
+    feedbackTopic?: 'idea' | 'content' | 'image';
+    feedback?: string;
 }
 
 // Create the Post schema
