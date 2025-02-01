@@ -41,7 +41,7 @@ Please generate LinkedIn post ideas that focus on the following themes:
 
    - **Formatting**:  
      - Use **bold** for stats (**$4.5M loss**), 2-3 emojis (🚀🔒), and markdown subheaders (*### 🛠️ Case Study*).  
-     - Include **5-8 hashtags**: Mix niche (*#APISecurity*) + broad (*#TechTrends*).  
+     - Include **7-9 hashtags**: Mix niche (*#APISecurity*) + broad (*#TechTrends*).  
 
 
 3. **Image Prompt** (Fal AI):
