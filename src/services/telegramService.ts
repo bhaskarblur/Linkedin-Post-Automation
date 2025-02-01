@@ -35,6 +35,13 @@ export async function failedToGenerateImagesMessage(errorMessage: string, chatId
     });
 }
 
+export async function failedToGeneratePostWithFeedbackMessage(errorMessage: string, chatId?: string) {
+    await axios.post(TELEGRAM_API_URL, {
+        chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
+        text: `Failed to make the post for LinkedIn.\nError: ${errorMessage}\n\nPlease try again.`,
+        parse_mode: undefined,
+    });
+}
 /**
  * Send a Telegram message with inline keyboard buttons for Accept/Reject.
  * @param title The post title.
@@ -129,11 +136,17 @@ export async function processTelegramResponse(message: any) {
         }
         // Receive improvement message
         if (responseText.toLowerCase().trim().startsWith("/improve")) {
-            // Example: /improve --postid=12345 --feedback=
+            // Example: /improve --postid=12345 --reason=image --feedback=
+            // -- reason is optional, feedback is required
             console.log("Received improvement message: ", responseText);
-            const postId = responseText.split("--postid=")[1]?.split("--feedback=")[0]?.trim();
-            const improvementMessage = responseText.split("--feedback=")[1]?.trim(); // <improvement message>
-            console.log("Improvement message received for post:", postId, improvementMessage);
+            let postId = responseText.split("--postid=")[1]?.trim();
+            let reason = responseText.split("--reason=")[1]?.split("--feedback=")[0]?.trim();
+            if (reason === undefined) {
+                postId = responseText.split("--postid=")[1]?.split("--feedback=")[0]?.trim();
+                reason = "image";
+            }
+            let improvementMessage = responseText.split("--feedback=")[1]; // <improvement message>
+            console.log("Improvement message received for post(postId, reason, improvementMessage):", postId, reason, improvementMessage);
             if (!improvementMessage || !postId) {
                 console.error("Improvement message is empty.");
                 const url = `${TELEGRAM_API_URL}/sendMessage`;
@@ -153,9 +166,10 @@ export async function processTelegramResponse(message: any) {
             const post = await Post.findById(postId);
             if (post) {
                 post.feedbackImprovement = improvementMessage;
+                post.feedbackTopic = reason;
                 await post.save();
             }
-            await invokePostCreationWithFeedback(postId);
+            await invokePostCreationWithFeedback(postId, message.from);
             return;
         }
 

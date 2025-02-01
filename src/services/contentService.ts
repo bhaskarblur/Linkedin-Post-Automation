@@ -93,7 +93,7 @@ export async function generatePostWithFeedback(post: IPost): Promise<PostIdea | 
         return idea;
     } catch (error) {
         console.error('Error generating post with feedback:', error);
-        throw new Error('Failed to generate post with feedback');
+        throw new Error(`${error}`);
     }
 }
 
