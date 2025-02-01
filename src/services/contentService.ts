@@ -92,6 +92,8 @@ export async function generatePostWithFeedback(post: IPost): Promise<PostIdea | 
             n: 1, // Number of completions to generate
         });
 
+        console.log('improved response from chat gpt:\n', response.choices[0].message?.content);
+
         // Parse the JSON response
         const cleanedResponse = cleanChatGPTResponse(response.choices[0].message?.content || '');
         const idea: PostIdea = JSON.parse(cleanedResponse);

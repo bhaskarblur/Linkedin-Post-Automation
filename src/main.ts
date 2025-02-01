@@ -40,6 +40,11 @@ export async function invokePostCreationWithFeedback(postId: string) {
         }
         const newPost = await generatePostWithFeedback(postDetails);
         if (newPost) {
+            if (postDetails.feedbackTopic == 'image' || postDetails.feedbackTopic == 'idea') {
+                console.log('Generating Images...');
+                const images = await generateImages(newPost.imagePrompt, Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
+                postDetails.generatedImages = images;
+            }
             // Update the post accordingly
             if (postDetails.feedbackTopic === 'idea') {
                 postDetails.title = newPost.title;
@@ -49,11 +54,6 @@ export async function invokePostCreationWithFeedback(postId: string) {
                 postDetails.content = newPost.content;
             } else if (postDetails.feedbackTopic === 'image') {
                 postDetails.imagePrompt = newPost.imagePrompt;
-            }
-            if (postDetails.feedbackTopic == 'image') {
-                console.log('Generating Images...');
-                const images = await generateImages(newPost.imagePrompt, Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
-                postDetails.generatedImages = images;
             }
             await postDetails.save();
             await sendTelegramMessage(newPost.title, newPost.content, postDetails.generatedImages, postDetails.id);

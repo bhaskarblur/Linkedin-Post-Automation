@@ -45,8 +45,8 @@ export async function sendTelegramMessage(title: string, content: string, images
         const inlineKeyboard = {
             inline_keyboard: [
                 [
-                    { text: "✅ Accept", callback_data: `ACCEPT_${postId}` },
-                    { text: "❌ Reject", callback_data: `REJECT_${postId}` }
+                    { text: "✅ Accept For Uploading", callback_data: `ACCEPT_${postId}` },
+                    { text: "❌ Reject & Improve", callback_data: `REJECT_${postId}` }
                 ]
             ]
         };
@@ -133,7 +133,7 @@ export async function processTelegramResponse(message: any) {
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
-            text: `Thank you! We're regenerating the post with your feedback`,
+            text: `Thank you! We're regenerating the post with your feedback.\nPlease wait while we regenerate the post.`,
             parse_mode: "Markdown",
         });
         await invokePostCreationWithFeedback(postId);
@@ -181,7 +181,7 @@ export async function processTelegramResponse(message: any) {
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
-            text: `You've accepted this post. To upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\n\nCopy & Follow the format to upload the post: upload_${postId}_2:30_YOUR_LINKEDIN_ACCESS_TOKEN`,
+            text: `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload_${postId}_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN`,
             parse_mode: undefined,
         });
         // Update post status to 'pending'
@@ -196,7 +196,7 @@ export async function processTelegramResponse(message: any) {
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
-            text: 'Please tell us why you are rejecting this post. Choose from the options below:\n1. Image \n2. Content idea\n3. Post content',
+            text: 'Please provide feedback on why you are rejecting this post. Choose from the options below which you think is the reason:\n1. Image \n2. Content idea\n3. Post content',
             reply_markup: JSON.stringify({
                 inline_keyboard: [
                     [
@@ -226,7 +226,7 @@ export async function processTelegramResponse(message: any) {
             const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
-                text: `Please tell us how you would improve this post.\n\nCopy & Follow the format to write your improvement: improvement_${postId}: your improvement message`,
+                text: `Please tell us how you would like to improve this post.\n\nCopy & Follow the format to write your improvement: improvement_${postId}: your improvement message`,
                 parse_mode: undefined,
             });
 
