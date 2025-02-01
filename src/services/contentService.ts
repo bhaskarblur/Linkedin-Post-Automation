@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { OpenAI } from 'openai';
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { GenerateMessage, POST_IDEA_PROMPT, RegenerateMessage } from '../constants/prompts';
 import { IPost } from '../models/Post';
 // Define the structure of a post idea
@@ -25,17 +26,20 @@ const openai = new OpenAI({
 export async function generatePostIdeas(count: number, prompt?: string): Promise<PostIdea[]> {
     try {
 
+        const messages: ChatCompletionMessageParam[] = [
+            { role: 'system', content: POST_IDEA_PROMPT },
+            { role: 'user', content: GenerateMessage(count, prompt) },
+        ];
+        console.log('messages:', messages);
         // Call the OpenAI API with the GPT-4o model
         const response = await openai.chat.completions.create({
             model: 'gpt-4o', // Specify the GPT-4o model
-            messages: [
-                { role: 'system', content: POST_IDEA_PROMPT },
-                { role: 'user', content: GenerateMessage(count, prompt) },
-            ],
+            messages: messages,
             max_tokens: 9600, // Adjust based on API limits
             temperature: 0.7, // Controls creativity
             n: count, // Number of completions to generate
         });
+
 
         console.log('response from chat gpt:\n', response.choices[0].message?.content);
         const cleanedResponse = cleanChatGPTResponse(response.choices[0].message?.content || '');
@@ -50,7 +54,7 @@ export async function generatePostIdeas(count: number, prompt?: string): Promise
         return ideas;
     } catch (error) {
         console.error('Error generating post ideas:', error);
-        throw new Error('Failed to generate post ideas');
+        throw new Error(`${error}`);
     }
 }
 

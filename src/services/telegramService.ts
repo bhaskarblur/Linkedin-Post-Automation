@@ -8,12 +8,11 @@ import { handlePostTimeInput } from "./linkedinService";
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 export const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 const RECEIVER_TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
-
+const url = `${TELEGRAM_API_URL}/sendMessage`;
 
 // This caters admin only access token expiry, so no chat id is required.
 export async function sendExpiredAccessTokenMessage() {
-    const url = `${TELEGRAM_API_URL}/sendMessage`;
-    await axios.post(url, {
+    await axios.post(TELEGRAM_API_URL, {
         chat_id: RECEIVER_TELEGRAM_CHAT_ID,
         text: "Your access token has expired. Please update your access token on server.",
         parse_mode: undefined,
@@ -21,8 +20,7 @@ export async function sendExpiredAccessTokenMessage() {
 }
 
 export async function failedToSchedulePostMessage() {
-    const url = `${TELEGRAM_API_URL}/sendMessage`;
-    await axios.post(url, {
+    await axios.post(TELEGRAM_API_URL, {
         chat_id: RECEIVER_TELEGRAM_CHAT_ID,
         text: "Failed to schedule post on LinkedIn.\nPlease make sure you've passed the correct post id and LinkedIn access token.",
         parse_mode: undefined,
@@ -30,8 +28,7 @@ export async function failedToSchedulePostMessage() {
 }
 
 export async function failedToGenerateImagesMessage(errorMessage: string, chatId?: string) {
-    const url = `${TELEGRAM_API_URL}/sendMessage`;
-    await axios.post(url, {
+    await axios.post(TELEGRAM_API_URL, {
         chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
         text: `Failed to make the post for LinkedIn.\nError: ${errorMessage}\n\nPlease try again.`,
         parse_mode: undefined,
@@ -54,8 +51,8 @@ export async function sendTelegramMessage(title: string, content: string, images
         const inlineKeyboard = {
             inline_keyboard: [
                 [
-                    { text: "✅ Accept For Uploading", callback_data: `ACCEPT_${postId}` },
-                    { text: "❌ Reject & Improve", callback_data: `REJECT_${postId}` },
+                    { text: "✅ Approve & Upload", callback_data: `ACCEPT_${postId}` },
+                    { text: "❌ Decline & Regenerate", callback_data: `REJECT_${postId}` },
                 ]
             ]
         };
@@ -70,7 +67,7 @@ export async function sendTelegramMessage(title: string, content: string, images
         };
 
         // Send the image first
-        await axios.post(`${TELEGRAM_API_URL}/sendPhoto`, photoPayload);
+        await axios.post(url, photoPayload);
 
         console.log("Telegram post photo sent successfully.");
         // Send full content separately as a text message
@@ -81,7 +78,7 @@ export async function sendTelegramMessage(title: string, content: string, images
                 parse_mode: "Markdown",
 
             };
-            await axios.post(`${TELEGRAM_API_URL}/sendMessage`, textPayload);
+            await axios.post(url, textPayload);
         }
 
 
@@ -114,7 +111,7 @@ export async function processTelegramResponse(message: any) {
 
         // Generate post
         if (responseText.toLowerCase().trim().startsWith("/generate")) {
-            // Example: /generate --prompt= "Generate a post about the future of AI"
+            // Example: /generate --prompt=Generate a post about the future of AI
             console.log("Generating post...");
             const prompt = responseText.split("--prompt=")[1];
             if (!prompt) {
@@ -132,9 +129,9 @@ export async function processTelegramResponse(message: any) {
         }
         // Receive improvement message
         if (responseText.toLowerCase().trim().startsWith("/improve")) {
-            // Example: /improve --postId=12345 --feedback=
+            // Example: /improve --postid=12345 --feedback=
             console.log("Received improvement message: ", responseText);
-            const postId = responseText.split("--postId=")[1]?.split("--feedback=")[0]?.trim();
+            const postId = responseText.split("--postid=")[1]?.split("--feedback=")[0]?.trim();
             const improvementMessage = responseText.split("--feedback=")[1]?.trim(); // <improvement message>
             console.log("Improvement message received for post:", postId, improvementMessage);
             if (!improvementMessage || !postId) {
@@ -162,19 +159,22 @@ export async function processTelegramResponse(message: any) {
             return;
         }
 
-        // Receive manual upload message, Format: upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
+        // Receive manual upload message, Format: upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
         if (responseText.toLowerCase().trim().startsWith("/upload")) {
-            // Example: upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
-            const postId = responseText.split("--postId=")[1].split("--time=")[0];
+            // Example: /upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN --apiKey=YOUR_FLUX_API_KEY --no-media
+            const postId = responseText.split("--postid=")[1].split("--time=")[0];
             const time = responseText.split("--time=")[1].split("--accessToken=")[0];
             let accessToken = responseText.split("--accessToken=")[1].split("--no-media")[0];
+            let apiKey = '';
             let useMedia = true;
-            if (accessToken.includes("--no-media")) {
+            if (responseText.includes("--no-media")) {
                 useMedia = false;
                 accessToken = accessToken.replace("--no-media", "");
             }
-            if (!accessToken) {
-                const url = `${TELEGRAM_API_URL}/sendMessage`;
+            if (responseText.includes("--apiKey=")) {
+                apiKey = responseText.split("--apiKey=")[1].split("--no-media")[0];
+            }
+            if (!accessToken && !apiKey) {
                 await axios.post(url, {
                     chat_id: message.from,
                     text: NoAccessTokenMessage,
@@ -182,8 +182,10 @@ export async function processTelegramResponse(message: any) {
                 });
                 return;
             }
+            if (!accessToken && apiKey) {
+                accessToken = apiKey;
+            }
             if (!time || !postId) {
-                const url = `${TELEGRAM_API_URL}/sendMessage`;
                 await axios.post(url, {
                     chat_id: message.from,
                     text: MissingUploadArguements,
@@ -193,7 +195,6 @@ export async function processTelegramResponse(message: any) {
             }
             if (postId) {
                 console.log('Scheduling post...');
-                const url = `${TELEGRAM_API_URL}/sendMessage`;
                 await axios.post(url, {
                     chat_id: message.from,
                     text: WaitMessage,
@@ -203,7 +204,7 @@ export async function processTelegramResponse(message: any) {
                 if (!success) {
                     await failedToSchedulePostMessage();
                 }
-                await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
+                await axios.post(url, {
                     chat_id: message.from,
                     text: PostScheduledMessage(postId),
                     parse_mode: undefined,
@@ -216,7 +217,6 @@ export async function processTelegramResponse(message: any) {
         if (!postId) {
             console.error("No postId found in payload.");
             // Fallback message
-            const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
                 text: InvalidInputMessage,
@@ -228,7 +228,6 @@ export async function processTelegramResponse(message: any) {
         // --- Accept Flow ---
         if (responseText.startsWith("accept")) {
             // Ask for the time to schedule the post.
-            const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
                 text: AcceptMessage(postId),
@@ -243,7 +242,6 @@ export async function processTelegramResponse(message: any) {
         // --- Reject Flow ---
         if (responseText.startsWith("reject")) {
             // Ask for rejection feedback.
-            const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
                 text: RejectMessage(postId),
@@ -274,7 +272,6 @@ export async function processTelegramResponse(message: any) {
                 console.log(`Feedback type received for post ${postId}: ${topic}`);
 
                 // Ask for improvement.
-                const url = `${TELEGRAM_API_URL}/sendMessage`;
                 await axios.post(url, {
                     chat_id: message.from,
                     text: FeedbackImprovementMessage(postId),
@@ -290,8 +287,7 @@ export async function processTelegramResponse(message: any) {
         return;
     } catch (error) {
         console.error("Error processing Telegram response:", error);
-        const url = `${TELEGRAM_API_URL}/sendMessage`;
-        await axios.post(url, {
+        await axios.post(TELEGRAM_API_URL, {
             chat_id: message.from,
             text: "Something went wrong. Error: " + error,
             parse_mode: undefined,
