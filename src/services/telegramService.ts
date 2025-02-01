@@ -41,13 +41,12 @@ export async function sendTelegramMessage(title: string, content: string, images
         console.log('Sending Telegram Message...');
         const text = `Post Idea: *${title}*\n\n${content}`;
         const maxCaptionLength = 1024;
-        const truncatedText = text.length > maxCaptionLength ? text.substring(0, maxCaptionLength - 3) + "..." : text;
 
         const inlineKeyboard = {
             inline_keyboard: [
                 [
                     { text: "✅ Accept For Uploading", callback_data: `ACCEPT_${postId}` },
-                    { text: "❌ Reject & Improve", callback_data: `REJECT_${postId}` }
+                    { text: "❌ Reject & Improve", callback_data: `REJECT_${postId}` },
                 ]
             ]
         };
@@ -145,7 +144,12 @@ export async function processTelegramResponse(message: any) {
     if (responseText.startsWith("upload")) {
         const postId = responseText.split("_")[1];
         const time = responseText.split("_")[2];
-        const accessToken = responseText.split("_")[3];
+        let accessToken = responseText.split("_")[3];
+        let useMedia = true;
+        if (accessToken.includes("--no-media")) {
+            useMedia = false;
+            accessToken = accessToken.replace("--no-media", "");
+        }
         if (!accessToken) {
             const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {

@@ -21,7 +21,7 @@ interface LinkedInUploadResponse {
 }
 
 // Handle received time and schedule the post on LinkedIn
-export async function handlePostTimeInput(postId: string, time: string, linkedinAccessToken?: string): Promise<boolean> {
+export async function handlePostTimeInput(postId: string, time: string, linkedinAccessToken?: string, uploadMedia: boolean = true): Promise<boolean> {
     try {
         // Parse the time (e.g., 14:30 for 2:30 PM)
         const postTime = new Date();
@@ -46,7 +46,7 @@ export async function handlePostTimeInput(postId: string, time: string, linkedin
 }
 
 // Function to schedule the post on LinkedIn
-async function scheduleLinkedInPost(post: any, postId: string, accessToken?: string): Promise<boolean> {
+async function scheduleLinkedInPost(post: any, postId: string, accessToken?: string, uploadMedia: boolean = true): Promise<boolean> {
     try {
         console.log('Initializing LinkedIn post scheduling...');
         const userAccessToken = accessToken == process.env.API_KEY ? process.env.LINKEDIN_ACCESS_TOKEN : accessToken;
@@ -63,58 +63,79 @@ async function scheduleLinkedInPost(post: any, postId: string, accessToken?: str
             timeout: 10000,
         });
         const userId = (userProfileResponse.data as LinkedInUserProfile).sub; // LinkedIn uses 'sub' for user ID
-
-        // Step 2: Register the Image Upload with LinkedIn
-        const registerUploadResponse = await registerUpload(userAccessToken, userId);
-        const uploadUrl = registerUploadResponse.uploadUrl;
-        const assetId = registerUploadResponse.asset;
-
-        console.log('Upload URL:', uploadUrl);
-        console.log('Asset ID:', assetId);
-
-        // Step 3: Upload the Image File to LinkedIn
-        const imageBuffer = await fetch(post.generatedImages[0].url).then(res => res.arrayBuffer());
-        console.log('Image Buffer:', imageBuffer);
-        await axios.put(uploadUrl, imageBuffer, {
-            headers: {
-                'Content-Type': 'image/jpeg', // Change this based on your image type
-            },
-            timeout: 10000,
-        });
-
-        // Set delay for 10 seconds
-        console.log('Waiting for 5 seconds before creating the post...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
         console.log('Creating LinkedIn post...');
-        // Step 4: Create and Schedule the Post
-        const postData = {
-            author: `urn:li:person:${userId}`,
-            lifecycleState: 'PUBLISHED',
-            specificContent: {
-                'com.linkedin.ugc.ShareContent': {
-                    shareCommentary: {
-                        text: post.content,
-                    },
-                    shareMediaCategory: 'IMAGE',
-                    media: [
-                        {
-                            status: 'READY',
-                            description: {
-                                text: post.content,
-                            },
-                            media: assetId,
-                            title: {
-                                text: post.title,
-                            },
+        let postData = {};
+
+        // If uploadMedia is false, then we don't need to upload the image
+        if (!uploadMedia) {
+            postData = {
+                author: `urn:li:person:${userId}`, // The authenticated user's LinkedIn ID
+                lifecycleState: 'PUBLISHED', // Set the post to be published immediately
+                specificContent: {
+                    'com.linkedin.ugc.ShareContent': {
+                        shareCommentary: {
+                            text: post.content, // The text content of the post
                         },
-                    ],
+                        shareMediaCategory: 'NONE', // Indicates no media is attached
+                    },
                 },
-            },
-            visibility: {
-                'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
-            },
-        };
+                visibility: {
+                    'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC', // Set post visibility to public
+                },
+            };
+        } else {
+
+            // Step 2: Register the Image Upload with LinkedIn
+            const registerUploadResponse = await registerUpload(userAccessToken, userId);
+            const uploadUrl = registerUploadResponse.uploadUrl;
+            const assetId = registerUploadResponse.asset;
+
+            console.log('Upload URL:', uploadUrl);
+            console.log('Asset ID:', assetId);
+
+            // Step 3: Upload the Image File to LinkedIn
+            const imageBuffer = await fetch(post.generatedImages[0].url).then(res => res.arrayBuffer());
+            console.log('Image Buffer:', imageBuffer);
+            await axios.put(uploadUrl, imageBuffer, {
+                headers: {
+                    'Content-Type': 'image/jpeg', // Change this based on your image type
+                },
+                timeout: 10000,
+            });
+
+
+            // Set delay for 10 seconds
+            console.log('Waiting for 5 seconds before creating the post...');
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            postData = {
+                author: `urn:li:person:${userId}`,
+                lifecycleState: 'PUBLISHED',
+                specificContent: {
+                    'com.linkedin.ugc.ShareContent': {
+                        shareCommentary: {
+                            text: post.content,
+                        },
+                        shareMediaCategory: 'IMAGE',
+                        media: [
+                            {
+                                status: 'READY',
+                                description: {
+                                    text: post.content,
+                                },
+                                media: assetId,
+                                title: {
+                                    text: post.title,
+                                },
+                            },
+                        ],
+                    },
+                },
+                visibility: {
+                    'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
+                },
+            };
+        }
 
         const postResponse = await axios.post('https://api.linkedin.com/v2/ugcPosts', postData, {
             headers: {
