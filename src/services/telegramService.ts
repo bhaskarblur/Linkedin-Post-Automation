@@ -150,7 +150,7 @@ export async function processTelegramResponse(message: any) {
         }
 
         // Receive manual upload message, Format: upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
-        if (responseText.startsWith("upload")) {
+        if (responseText.toLowerCase().trim().startsWith("/upload")) {
             // Example: upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
             const postId = responseText.split("--postId=")[1].split("--time=")[0];
             const time = responseText.split("--time=")[1].split("--accessToken=")[0];
@@ -277,5 +277,11 @@ export async function processTelegramResponse(message: any) {
         return;
     } catch (error) {
         console.error("Error processing Telegram response:", error);
+        const url = `${TELEGRAM_API_URL}/sendMessage`;
+        await axios.post(url, {
+            chat_id: message.from,
+            text: "Something went wrong. Error: " + error,
+            parse_mode: undefined,
+        });
     }
 }
