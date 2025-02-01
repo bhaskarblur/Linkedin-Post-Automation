@@ -17,13 +17,13 @@ const app = express();
 app.use(bodyParser.json());
 
 
-async function invokePostCreation(ideaCount: number) {
+export async function invokePostCreation(ideaCount: number) {
     try {
         console.log('Invoking Post Creation...');
         const posts = await generatePostIdeas(ideaCount);
         for (const post of posts) {
             console.log('Starting to generate images for post:', post.title);
-            const images = await generateImages(post.imagePrompt, Number(process.env.POST_IMAGE_COUNT) || 1);
+            const images = await generateImages(post.imagePrompt, Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
             const savedPost = await savePost({ ...post, generatedImages: images });
             await sendTelegramMessage(post.title, post.content, images, savedPost.id);
         }
@@ -52,7 +52,7 @@ export async function invokePostCreationWithFeedback(postId: string) {
             }
             if (postDetails.feedbackTopic == 'image') {
                 console.log('Generating Images...');
-                const images = await generateImages(newPost.imagePrompt, Number(process.env.POST_IMAGE_COUNT) || 1);
+                const images = await generateImages(newPost.imagePrompt, Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
                 postDetails.generatedImages = images;
             }
             await postDetails.save();

@@ -1,3 +1,5 @@
+// This Service is not maintained, consider using Telegram Service instead.
+
 import axios from 'axios';
 import { invokePostCreationWithFeedback } from '../main';
 import { IImage, Post } from '../models/Post'; // Assuming your postService has a Post model
@@ -131,7 +133,7 @@ export async function processWhatsAppResponse(message: any) {
 
         const post = await Post.findById(postId);
         if (post) {
-            post.feedback = feedback;
+            post.feedbackImprovement = feedback;
             post.feedbackTopic = topic;
             await post.save();
             console.log(`Feedback received for post ${postId}: ${topic} - ${feedback}`);

@@ -40,9 +40,13 @@ export async function generatePostIdeas(count: number): Promise<PostIdea[]> {
         console.log('response from chat gpt:\n', response.choices[0].message?.content);
         const cleanedResponse = cleanChatGPTResponse(response.choices[0].message?.content || '');
         // Parse the JSON response
-        const ideas: PostIdea[] = JSON.parse(cleanedResponse);
+        var ideas: PostIdea[] = JSON.parse(cleanedResponse);
         console.log('ideas:\n', ideas);
         console.log('ideas count:', ideas.length);
+        // If the response is not an array, make it an array
+        if (ideas.length === undefined) {
+            ideas = [JSON.parse(cleanedResponse)];
+        }
         return ideas;
     } catch (error) {
         console.error('Error generating post ideas:', error);
