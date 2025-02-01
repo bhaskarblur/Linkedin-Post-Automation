@@ -47,6 +47,6 @@ export async function generateImages(prompt: string, numImages: number = 1): Pro
         return Promise.resolve(images);
     } catch (error) {
         console.error('Error generating images:', error);
-        throw new Error('Failed to generate images');
+        throw new Error(`${error}`);
     }
 }

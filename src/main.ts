@@ -6,7 +6,7 @@ import { Post } from './models/Post';
 import { generatePostIdeas, generatePostWithFeedback } from './services/contentService';
 import { generateImages } from './services/imageService';
 import { savePost } from './services/postService';
-import { processTelegramResponse, sendTelegramMessage } from './services/telegramService';
+import { failedToGenerateImagesMessage, processTelegramResponse, sendTelegramMessage } from './services/telegramService';
 
 cron.schedule('0 0 * * *', async () => {
     console.log('CRON: Running LinkedIn Automation Bot...');
@@ -28,6 +28,10 @@ export async function invokePostCreation(ideaCount: number, prompt?: string, cha
             await sendTelegramMessage(post.title, post.content, images, savedPost.id, chatId);
         }
     } catch (error) {
+        // if error is failed to generate images, then send a message to the user
+        if (error instanceof Error) {
+            await failedToGenerateImagesMessage(error.message, chatId);
+        }
         console.error('Error invoking post creation:', error);
     }
 }

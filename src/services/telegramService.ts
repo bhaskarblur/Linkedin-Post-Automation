@@ -29,6 +29,15 @@ export async function failedToSchedulePostMessage() {
     });
 }
 
+export async function failedToGenerateImagesMessage(errorMessage: string, chatId?: string) {
+    const url = `${TELEGRAM_API_URL}/sendMessage`;
+    await axios.post(url, {
+        chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
+        text: `Failed to make the post for LinkedIn.\nError: ${errorMessage}\n\nPlease try again.`,
+        parse_mode: undefined,
+    });
+}
+
 /**
  * Send a Telegram message with inline keyboard buttons for Accept/Reject.
  * @param title The post title.
@@ -108,7 +117,10 @@ export async function processTelegramResponse(message: any) {
             // Example: /generate --prompt= "Generate a post about the future of AI"
             console.log("Generating post...");
             const prompt = responseText.split("--prompt=")[1];
-
+            if (!prompt) {
+                console.error("Prompt is empty.");
+            }
+            console.log("/generate --prompt:", prompt);
             const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
@@ -120,9 +132,10 @@ export async function processTelegramResponse(message: any) {
         }
         // Receive improvement message
         if (responseText.toLowerCase().trim().startsWith("/improve")) {
-            // Example: improvement --postId=12345 --feedback=
-            const postId = responseText.split("--postId=")[1].split("--feedback=")[0].trim();
-            const improvementMessage = responseText.split("--feedback=")[1]; // <improvement message>
+            // Example: /improve --postId=12345 --feedback=
+            console.log("Received improvement message: ", responseText);
+            const postId = responseText.split("--postId=")[1]?.split("--feedback=")[0]?.trim();
+            const improvementMessage = responseText.split("--feedback=")[1]?.trim(); // <improvement message>
             console.log("Improvement message received for post:", postId, improvementMessage);
             if (!improvementMessage || !postId) {
                 console.error("Improvement message is empty.");

@@ -1,76 +1,32 @@
-export const POST_IDEA_PROMPT = `
-You are an AI assistant that specializes in generating engaging, thought-provoking LinkedIn posts for a Software Engineer with expertise in Backend Development, System Design, and Artificial Intelligence (AI). The goal is to create posts that showcase professional knowledge, spark meaningful discussions, and stay current with the latest tech trends.
+export const POST_IDEA_PROMPT = `  
+Generate technical LinkedIn posts for software engineers focusing on:  
+🛠️ AI/ML Systems • 🏗️ Scalable Architecture • ☁️ Cloud Engineering  
 
-Please generate LinkedIn post ideas that focus on the following themes:
-1. **System Design**
-2. **Artificial Intelligence (AI)**
-3. **Emerging Tech Trends**
-4. **Software Engineering**
-5. **Cloud Computing**
-6. **Security & Fraud Detection**
+### Rules:  
+1. **Title**:  
+   - Use numbers/verbs + pain point:  
+   *Examples:*  
+   - "3 Costly Mistakes 78% of Teams Make With Microservices"  
+   - "How We Reduced API Latency by 62% Using RedisEdge"  
 
-### Instructions:
+2. **Content** (2-3 paragraphs):  
+   - **Para 1**: Problem + 2023-24 stat (*"59% of cloud budgets wasted on overprovisioning (Flexera 2024)"*)  
+   - **Para 2**: Solution/Toolchain (*"We cut costs 40% using AWS Lambda auto-scaling + Prometheus monitoring"*)  
+   - **Para 3**: Solution/Toolchain (*"We cut costs 40% using AWS Lambda auto-scaling + Prometheus monitoring"*)  
+   - **Para 4**: CTA + Trend (*"Will serverless dominate 2025? Share your thoughts! 👇 #CloudEngineering"*)  
 
-1. **Post Title**:
-   - Craft a *catchy, compelling title* designed to capture the attention of a professional tech audience. The title should be bold and intriguing, encouraging readers to click and engage. Ensure the title provides a clear idea of the content's value.
-    - Use **provocative questions** or **data-driven hooks** (e.g., *“Why 63% of AI Projects Fail in Production?”*).  
-   - Examples: 
-     - “How AI Is Transforming the Future of Scalable Systems”
-     - “Building Resilient Systems: The Importance of Microservices in 2025”
-     - “Why System Design Will Be the Key to AI’s Next Breakthrough”
+3. **Image Prompt**:  
+   - Style: "3D tech, engaging scene with [MAIN CONCEPT] + Bhaskar Kaura's white cylindrical pod (bottom-left 10%)"  
+   - Examples:  
+     - *"Auto-scaling cloud modules with traffic flow arrows, Bhaskar Kaura pod, isometric view"*  
+     - *"Neural network over server racks, Bhaskar Kaura pod, cinematic lighting"*  
 
-2. **Post Content**:  
-   Write **3-4 paragraphs** with this structure:  
-
-   - **Paragraph 1: Hook + Problem**  
-     - Start with **2023-2024 statistic** (cite Gartner/McKinsey/IEEE) + urgency.  
-     - Example: *“57% of 2024 data breaches targeted APIs (IBM), yet most teams still use outdated auth protocols.”*  
-
-   - **Paragraph 2: Deep Dive (Choose ONE Focus)**:  
-     - **Case Study**: *“How [Company] solved [problem] with [tech]”* (e.g., *“PayPal cut latency 40% using gRPC”*).  
-     - **Trend Analysis**: *“Why [trend] will redefine [field] by 2025”* (e.g., homomorphic encryption for privacy).  
-     - **Scalability Guide**: *“3 Architecture Patterns for 10M+ Users”*.  
-     - **Security Alert**: *“Mitigating AI-Powered Phishing”*.  
-
-   - **Paragraph 3: Actionable Value**  
-     - Provide a **3-4 step framework** with tools (e.g., *“1) Audit APIs with Postman 2) Implement Istio…”*).  
-     - Link to **emerging trends** (e.g., *“Start testing quantum-resistant algorithms now”*).  
-
-   - **Paragraph 4: CTA**  
-     - End with a **question** or **challenge** (e.g., *“Which scalability issue keeps you up? Let’s solve it! 👇”*).  
-
-   - **Formatting**:  
-     - Use **bold** for stats (**$4.5M loss**), 2-3 emojis (🚀🔒), and markdown subheaders (*### 🛠️ Case Study*).  
-     - Include **7-9 hashtags**: Mix niche (*#APISecurity*) + broad (*#TechTrends*).  
-
-
-3. **Image Prompt** (Fal AI):
-   - Generate ultra-detailed, cinematic 3D renders merging photorealistic tech elements with symbolic metaphors:
-   - Core Elements:
-     - Infrastructure: Server racks/cloud nodes/circuit boards (PBR materials: brushed metal, glass, carbon fiber).
-     - Metaphors:
-       - AI: Glowing neural networks with neon-purple/orange data streams (subsurface scattering effect).
-       - Security: Layered cyan fractal shields with wireframe patterns.
-       - Cloud: Modular floating platforms with holographic blue energy cores.
-       - Lighting: Cinematic volumetric rays, soft shadows, depth of field.
-       - Branding (Mandatory):
-         - Bhaskar Kaura name as a sleek white cylindrical pod (anodized texture) on a pure white circular base (soft shadow), positioned top-right corner (10% width, 5% margin from edges).
-       - Perspective: Dynamic angles (e.g., low-angle server views, isometric cloud layouts).
-
-4. **JSON Format**:
-   Return your response in a **JSON format** with the following keys:
-   - **title**: The post title.
-   - **content**: The body of the post (3-4 detailed paragraphs with actionable insights).
-   - **imagePrompt**: A detailed and well explained prompt for generating a related image.
-
-### Output Guidelines:
-- You must respond in JSON format and generate the number of posts as specified in the user request.
-- Images must include the branding Bhaskar Kaura name in the image.
-- Focus on generating posts that provide **value**, **insight**, and **practical advice** for professionals in the fields of System Design and AI.
-- Content should be **relevant**, **timely**, and **actionable**, ensuring it resonates with a professional LinkedIn audience.
-- Make sure the image prompt is **directly aligned** with the content of the post and provides a **clear visual representation** of the concept discussed.
-
-Your goal is to provide **engaging, useful, and professional content** that invites conversation, shares valuable knowledge, and enhances the field of System Design and AI.
+4. **Output Format** (Strictly JSON Array or JSON Object):  
+{  
+  "title": "[Short Hook]",  
+  "content": "### [Problem] 🚀\n[Solution]\n\n[CTA]" (3-4 paragraphs),  
+  "imagePrompt": "[3D Concept] + Bhaskar Kaura pod"  
+}  
 `;
 
 export const NoAccessTokenMessage = `No access token found in payload.\nYou need to provide your own access token to upload the post. (We do not store your access token, it's one time use only)`;
@@ -79,7 +35,7 @@ export const WaitMessage = `Please wait while we schedule the post...`;
 
 export const PostScheduledMessage = (postId: string) => `Post ${postId} scheduled successfully!`;
 
-export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'(use --prompt= to generate a post with a specific prompt)\n\n2. To upload a post to LinkedIn type '/upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN'.\n\n3. To upload without image, use --no-media flag'";
+export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type\n'/generate'(use --prompt= to generate a post with a specific prompt)\n\n2. To upload a post to LinkedIn type\n'/upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN'.\n\n3. To upload without image, use --no-media flag'";
 
 export const AcceptMessage = (postId: string) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload --postId=${postId} --time=HH:MM --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN.\n\nIf you want to upload the post without image, use --no-media flag.`;
 
