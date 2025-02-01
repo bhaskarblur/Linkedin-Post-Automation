@@ -111,7 +111,7 @@ export async function processTelegramResponse(message: any) {
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
-            text: "Generating post...",
+            text: "Pleas wait while we generate a post for LinkedIn!",
             parse_mode: undefined,
         });
         await invokePostCreation(1, prompt); // Create 1 post
