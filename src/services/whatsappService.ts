@@ -4,7 +4,8 @@ import { IImage, Post } from '../models/Post'; // Assuming your postService has 
 
 const WHATSAPP_API_URL = process.env.WHATSAPP_API_URL || '';
 const WHATSAPP_API_KEY = process.env.WHATSAPP_API_KEY || '';
-const WHATSAPP_NUMBER = process.env.WHATSAPP_NUMBER || '';
+const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
+const RECEIVER_WHATSAPP_NUMBER = process.env.RECEIVER_WHATSAPP_NUMBER || '';
 
 
 export async function sendWhatsAppMessage(title: string, content: string, images: IImage[], postId: string) {
@@ -15,7 +16,7 @@ export async function sendWhatsAppMessage(title: string, content: string, images
         ];
 
         const message = {
-            to: WHATSAPP_NUMBER,
+            to: RECEIVER_WHATSAPP_NUMBER,
             type: 'interactive',
             interactive: {
                 type: 'button',
@@ -70,9 +71,15 @@ export async function processWhatsAppResponse(message: any) {
     if (responseText.startsWith('accept')) {
         // Ask for the time to schedule the post
         await axios.post(WHATSAPP_API_URL, {
-            to: WHATSAPP_NUMBER,
+            to: RECEIVER_WHATSAPP_NUMBER,
             text: `Please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).`
-        });
+        },
+            {
+                headers: {
+                    'Authorization': `Bearer ${WHATSAPP_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
         // Save the post with status "pending" and await the time input.
         const post = await Post.findById(postId);
@@ -94,14 +101,20 @@ export async function processWhatsAppResponse(message: any) {
     if (responseText.startsWith('reject')) {
         // Ask for rejection feedback
         await axios.post(WHATSAPP_API_URL, {
-            to: WHATSAPP_NUMBER,
+            to: RECEIVER_WHATSAPP_NUMBER,
             text: `Please tell us why you are rejecting this post. Choose from: 
                    1. Image quality 
                    2. Content idea
                    3. Post content
 
                    Additionally, feel free to provide feedback to improve the post.`
-        });
+        },
+            {
+                headers: {
+                    'Authorization': `Bearer ${WHATSAPP_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
         await Post.findByIdAndUpdate(postId, { status: 'rejected' });
         return;
     }
