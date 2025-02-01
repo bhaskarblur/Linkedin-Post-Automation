@@ -38,7 +38,7 @@ export async function failedToGenerateImagesMessage(errorMessage: string, chatId
 export async function failedToGeneratePostWithFeedbackMessage(errorMessage: string, chatId?: string) {
     await axios.post(TELEGRAM_API_URL, {
         chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
-        text: `Failed to make the post for LinkedIn.\nError: ${errorMessage}\n\nPlease try again.`,
+        text: `Failed to generate post with feedback.\nError: ${errorMessage}\n\nPlease try again.`,
         parse_mode: undefined,
     });
 }
