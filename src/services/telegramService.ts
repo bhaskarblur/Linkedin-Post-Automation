@@ -155,11 +155,24 @@ export async function processTelegramResponse(message: any) {
             return;
         }
         if (postId) {
+            console.log('Scheduling post...');
+            const url = `${TELEGRAM_API_URL}/sendMessage`;
+            await axios.post(url, {
+                chat_id: message.from,
+                text: 'Please wait while we schedule the post...',
+                parse_mode: undefined,
+            });
             const success = await handlePostTimeInput(postId, time, accessToken);
             if (!success) {
                 await failedToSchedulePostMessage();
             }
+            await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
+                chat_id: message.from,
+                text: `Post: ${postId} scheduled successfully!`,
+                parse_mode: undefined,
+            });
         }
+        return;
     }
 
 

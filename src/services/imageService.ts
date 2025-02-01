@@ -34,6 +34,7 @@ export async function generateImages(prompt: string, numImages: number = 1): Pro
 
         console.log('Images generated successfully:', result.data.images);
 
+        console.log('File content type:', result.data.images[0].content_type);
         // Extract the URLs of the generated images
         const images: IImage[] = result.data.images.map((image: Image) => ({
             url: image.url || '',
