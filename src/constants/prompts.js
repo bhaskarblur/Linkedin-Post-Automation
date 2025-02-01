@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GenerateMessage = exports.RegenerateMessage = exports.FeedbackImprovementMessage = exports.RejectMessage = exports.AcceptMessage = exports.InvalidInputMessage = exports.PostScheduledMessage = exports.WaitMessage = exports.NoAccessTokenMessage = exports.POST_IDEA_PROMPT = void 0;
 export const POST_IDEA_PROMPT = `
 You are an AI assistant that specializes in generating engaging, thought-provoking LinkedIn posts for a Software Engineer with expertise in Backend Development, System Design, and Artificial Intelligence (AI). The goal is to create posts that showcase professional knowledge, spark meaningful discussions, and stay current with the latest tech trends.
 
@@ -42,22 +45,18 @@ Please generate LinkedIn post ideas that focus on the following themes:
 
 Your goal is to provide **engaging, useful, and professional content** that invites conversation, shares valuable knowledge, and enhances the field of System Design and AI.
 `;
-
-export const NoAccessTokenMessage = `No access token found in payload.\nYou need to provide your own access token to upload the post. (We do not store your access token, it's one time use only)`;
-
-export const WaitMessage = `Please wait while we schedule the post...`;
-
-export const PostScheduledMessage = (postId: string) => `Post ${postId} scheduled successfully!`;
-
-export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'(use --prompt= to generate a post with a specific prompt)\n2. To upload a post to LinkedIn type 'upload_postId_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN'.\n3. To upload without image, use --no-media flag'";
-
-export const AcceptMessage = (postId: string) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload_${postId}_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN.\n\nIf you want to upload the post without image, use --no-media flag.`;
-
-export const RejectMessage = (postId: string) => `Please provide feedback on why you are rejecting this post. Choose from the options below which you think is the reason:\n1. Image \n2. Content idea\n3. Post content`;
-
-export const FeedbackImprovementMessage = (postId: string) => `Please tell us how you would like to improve this post.\n\nCopy & Follow the format to write your improvement: improvement_${postId}: your improvement message`;
-
-export const RegenerateMessage = (post: any) => `
+exports.NoAccessTokenMessage = `No access token found in payload.\nYou need to provide your own access token to upload the post. (We do not store your access token, it's one time use only)`;
+exports.WaitMessage = `Please wait while we schedule the post...`;
+const PostScheduledMessage = (postId) => `Post ${postId} scheduled successfully!`;
+exports.PostScheduledMessage = PostScheduledMessage;
+exports.InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'(use --prompt= to generate a post with a specific prompt)\n2. To upload a post to LinkedIn type 'upload_postId_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN'.\n3. To upload without image, use --no-media flag'";
+const AcceptMessage = (postId) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload_${postId}_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN.\n\nIf you want to upload the post without image, use --no-media flag.`;
+exports.AcceptMessage = AcceptMessage;
+const RejectMessage = (postId) => `Please provide feedback on why you are rejecting this post. Choose from the options below which you think is the reason:\n1. Image \n2. Content idea\n3. Post content`;
+exports.RejectMessage = RejectMessage;
+const FeedbackImprovementMessage = (postId) => `Please tell us how you would like to improve this post.\n\nCopy & Follow the format to write your improvement: improvement_${postId}: your improvement message`;
+exports.FeedbackImprovementMessage = FeedbackImprovementMessage;
+const RegenerateMessage = (post) => `
                     Regenerate the post based on the following feedbacks.
                     
                     **Guidelines for Revisions:**
@@ -71,5 +70,6 @@ export const RegenerateMessage = (post: any) => `
                 
                     Please ensure that the post aligns with the reviewer's suggestions, maintaining the overall quality while addressing the specific concerns.
                     `;
-
-export const GenerateMessage = (count: number, prompt?: string) => `Generate ${count} posts for LinkedIn.${prompt ? `\n\nPrompt: ${prompt}` : ''}`;
+exports.RegenerateMessage = RegenerateMessage;
+const GenerateMessage = (count, prompt) => `Generate ${count} posts for LinkedIn.${prompt ? `\n\nPrompt: ${prompt}` : ''}`;
+exports.GenerateMessage = GenerateMessage;
