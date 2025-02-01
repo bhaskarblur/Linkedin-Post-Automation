@@ -4,8 +4,10 @@ import { IPost, Post } from "../models/Post";
 
 export async function savePost(postData: Partial<IPost>): Promise<IPost> {
     try {
+        console.log('Saving post:', postData);
         const post = new Post(postData);
         const savedPost = await post.save();
+        console.log('Post saved:', savedPost);
         return savedPost;
     } catch (error) {
         console.error('Error saving post:', error);

@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { OpenAI } from 'openai';
+import { POST_IDEA_PROMPT } from '../constants/prompts';
 import { Post } from '../models/Post';
 
 // Define the structure of a post idea
@@ -20,42 +21,29 @@ const openai = new OpenAI({
     apiKey: OPENAI_API_KEY,
 });
 
-// Function to generate post ideas using GPT-4o
-export async function generatePostIdeas(ideasCount: number): Promise<PostIdea[]> {
-    try {
-        // Define the prompt for generating post ideas
-        const prompt = `
-            I am a Software Engineer specializing in Backend, System Design, and AI, and a tech enthusiast interested in the latest trends.
-            You will be asked to generat LinkedIn post ideas & content related to System Design, AI, and the latest tech trends.
-            Use English for the post ideas and content, image prompt.
-            For image generate prompt guidelines, the image should be a tech related representation of the post in English, it can be a logo, a diagram, a screenshot, etc.
-            The image should contain my name on any corner(Bhaskar Kaura), images/diagrams must be clean and simple, use max 2 colors(green and blue).
-            Each idea should include:
-            - A catchy title
-            - Detailed post content (Engaging, 2-3 paragraphs)
-            - A well-explained and detailed prompt for generating a related image
 
-            Return the response as a JSON array of objects with the following keys:
-            - title
-            - content
-            - imagePrompt
-        `;
+// Function to generate post ideas using GPT-4o
+export async function generatePostIdeas(count: number): Promise<PostIdea[]> {
+    try {
 
         // Call the OpenAI API with the GPT-4o model
         const response = await openai.chat.completions.create({
             model: 'gpt-4o', // Specify the GPT-4o model
             messages: [
-                { role: 'system', content: prompt },
-                { role: 'user', content: 'Generate ${ideasCount} post ideas for LinkedIn about System Design, AI, and latest tech trends.' },
+                { role: 'system', content: POST_IDEA_PROMPT },
+                { role: 'user', content: `Generate ${count} posts for LinkedIn.` },
             ],
             max_tokens: 3600, // Adjust based on API limits
             temperature: 0.7, // Controls creativity
-            n: 1, // Number of completions to generate
+            n: count, // Number of completions to generate
         });
 
+        console.log('response from chat gpt:\n', response.choices[0].message?.content);
+        const cleanedResponse = cleanChatGPTResponse(response.choices[0].message?.content || '');
         // Parse the JSON response
-        const ideas: PostIdea[] = JSON.parse(response.choices[0].message?.content || '[]');
-        console.log('ideas', ideas);
+        const ideas: PostIdea[] = JSON.parse(cleanedResponse);
+        console.log('ideas:\n', ideas);
+        console.log('ideas count:', ideas.length);
         return ideas;
     } catch (error) {
         console.error('Error generating post ideas:', error);
@@ -69,30 +57,12 @@ export async function generatePostWithFeedback(postId: string): Promise<PostIdea
         if (!post) {
             throw new Error('Post not found');
         }
-        // Define the prompt for generating post ideas
-        const prompt = `
-          I am a Software Engineer specializing in Backend, System Design, and AI, and a tech enthusiast interested in the latest trends.
-          You will be asked to generat LinkedIn post ideas & content related to System Design, AI, and the latest tech trends.
-          Use English for the post ideas and content, image prompt.
-          For image generate prompt guidelines, the image should be a tech related representation of the post in English, it can be a logo, a diagram, a screenshot, etc.
-          The image should contain my name on any corner(Bhaskar Kaura), images/diagrams must be clean and simple, use max 2 colors(green and blue).
-          Each idea should include:
-          - A catchy title
-          - Detailed post content (Engaging, 2-3 paragraphs)
-          - A well-explained and detailed prompt for generating a related image
-
-          Return the response as a JSON array of objects with the following keys:
-          - title
-          - content
-          - imagePrompt
-      `;
-
         // Call the OpenAI API with the GPT-4o model
         const response = await openai.chat.completions.create({
             model: 'gpt-4o', // Specify the GPT-4o model
             messages: [
-                { role: 'system', content: prompt },
-                { role: 'user', content: 'Generate post idea for LinkedIn about System Design, AI, and latest tech trends.' },
+                { role: 'system', content: POST_IDEA_PROMPT },
+                { role: 'user', content: 'Generate a post idea for LinkedIn.' },
                 {
                     role: 'assistant', content:
                         `title: ${post.title}
@@ -101,10 +71,22 @@ export async function generatePostWithFeedback(postId: string): Promise<PostIdea
                     `
                 },
                 {
-                    role: 'user', content:
-                        `What is not good: ${post.feedbackTopic}\n
-                        What to do: ${post.feedback}`
-                },
+                    role: 'user',
+                    content: `
+                    Regenerate the post based on the following feedbacks.
+                    
+                    **Guidelines for Revisions:**
+                    - If the feedback is related to the *idea* (What is not good: idea), make significant changes to the entire post idea.
+                    - If the feedback is about the *content* (What is not good: content), modify the content of the post while keeping the main concept intact.
+                    - If the feedback is related to the *image* (What is not good: image), revise the image to better match the content and theme, but don't change the anything else.
+                
+                    **Feedback Summary:**
+                    - *What is not good*: ${post.feedbackTopic}  
+                    - *Improvement*: ${post.feedbackImprovement}
+                
+                    Please ensure that the post aligns with the reviewer's suggestions, maintaining the overall quality while addressing the specific concerns.
+                    `
+                }
             ],
             max_tokens: 3600, // Adjust based on API limits
             temperature: 0.7, // Controls creativity
@@ -112,16 +94,29 @@ export async function generatePostWithFeedback(postId: string): Promise<PostIdea
         });
 
         // Parse the JSON response
-        const idea: PostIdea = JSON.parse(response.choices[0].message?.content || '{}');
-        // Update the post with the new idea
-        post.title = idea.title;
-        post.content = idea.content;
-        post.imagePrompt = idea.imagePrompt;
+        const cleanedResponse = cleanChatGPTResponse(response.choices[0].message?.content || '');
+        const idea: PostIdea = JSON.parse(cleanedResponse);
+
+        // Update the post accordingly
+        if (post.feedbackTopic === 'idea') {
+            post.title = idea.title;
+            post.content = idea.content;
+            post.imagePrompt = idea.imagePrompt;
+        } else if (post.feedbackTopic === 'content') {
+            post.content = idea.content;
+        } else if (post.feedbackTopic === 'image') {
+            post.imagePrompt = idea.imagePrompt;
+        }
         await post.save();
-        console.log('idea', idea);
+        console.log('updated post', post);
         return idea;
     } catch (error) {
         console.error('Error generating post with feedback:', error);
         throw new Error('Failed to generate post with feedback');
     }
+}
+
+function cleanChatGPTResponse(response: string) {
+    // Remove triple backticks and trim whitespace
+    return response.replace(/```json|```/g, '').trim();
 }

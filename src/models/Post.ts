@@ -12,10 +12,10 @@ export interface IImage {
 // Create the Image schema
 const imageSchema = new Schema<IImage>({
     url: { type: String, required: true },
-    name: { type: String, required: true },
-    width: { type: Number, required: true },
-    height: { type: Number, required: true },
-    size: { type: Number, required: true },
+    name: { type: String, required: false },
+    width: { type: Number, required: false },
+    height: { type: Number, required: false },
+    size: { type: Number, required: false },
 }, { _id: false }); // Disable automatic _id generation for subdocuments
 
 // Define the structure of the Post document
@@ -28,7 +28,7 @@ export interface IPost extends Document {
     postTime?: Date;
     createdAt: Date;
     feedbackTopic?: 'idea' | 'content' | 'image';
-    feedback?: string;
+    feedbackImprovement?: string;
 }
 
 // Create the Post schema
@@ -40,6 +40,8 @@ const postSchema = new Schema<IPost>({
     status: { type: String, enum: ['pending', 'accepted', 'rejected', 'scheduled'], default: 'pending' },
     postTime: { type: Date },
     createdAt: { type: Date, default: Date.now },
+    feedbackTopic: { type: String, enum: ['idea', 'content', 'image'], required: false },
+    feedbackImprovement: { type: String, required: false },
 });
 
 // Create and export the Post model

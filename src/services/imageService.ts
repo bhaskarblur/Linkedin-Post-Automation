@@ -17,6 +17,7 @@ fal.config({ credentials: FAL_API_KEY });
 // Function to generate images based on a prompt
 export async function generateImages(prompt: string, numImages: number = 1): Promise<IImage[]> {
     try {
+        console.log('Generating images for prompt:', prompt);
         // Call the FLUX.1 [dev] model endpoint for text-to-image generation
         const result = await fal.subscribe('fal-ai/flux/dev', {
             input: {
@@ -31,6 +32,8 @@ export async function generateImages(prompt: string, numImages: number = 1): Pro
             },
         });
 
+        console.log('Images generated successfully:', result.data.images);
+
         // Extract the URLs of the generated images
         const images: IImage[] = result.data.images.map((image: Image) => ({
             url: image.url || '',
@@ -39,7 +42,7 @@ export async function generateImages(prompt: string, numImages: number = 1): Pro
             height: image.height || 0,
             size: image.file_size || 0,
         }));
-
+        console.log('Images:', images);
         return Promise.resolve(images);
     } catch (error) {
         console.error('Error generating images:', error);

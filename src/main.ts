@@ -5,8 +5,7 @@ import cron from 'node-cron';
 import { generatePostIdeas, generatePostWithFeedback } from './services/contentService';
 import { generateImages } from './services/imageService';
 import { savePost } from './services/postService';
-import { processTelegramResponse } from './services/telegramService';
-import { sendWhatsAppMessage } from './services/whatsappService';
+import { processTelegramResponse, sendTelegramMessage } from './services/telegramService';
 
 cron.schedule('0 0 * * *', async () => {
     console.log('CRON: Running LinkedIn Automation Bot...');
@@ -18,27 +17,31 @@ app.use(bodyParser.json());
 
 
 async function invokePostCreation(ideaCount: number) {
-    console.log('Invoking Post Creation...');
-    const posts = await generatePostIdeas(ideaCount);
-    for (const post of posts) {
-        console.log('Generating Images...');
-        const images = await generateImages(post.imagePrompt, Number(process.env.POST_IMAGE_COUNT) || 1);
-        console.log('Saving Post...');
-        const savedPost = await savePost({ ...post, generatedImages: images });
-        console.log('Sending WhatsApp Message...');
-        await sendWhatsAppMessage(post.title, post.content, images, savedPost.id);
+    try {
+        console.log('Invoking Post Creation...');
+        const posts = await generatePostIdeas(ideaCount);
+        for (const post of posts) {
+            console.log('Starting to generate images for post:', post.title);
+            const images = await generateImages(post.imagePrompt, Number(process.env.POST_IMAGE_COUNT) || 1);
+            const savedPost = await savePost({ ...post, generatedImages: images });
+            await sendTelegramMessage(post.title, post.content, images, savedPost.id);
+        }
+    } catch (error) {
+        console.error('Error invoking post creation:', error);
     }
 }
 
 export async function invokePostCreationWithFeedback(postId: string) {
-    const post = await generatePostWithFeedback(postId);
-    if (post) {
-        console.log('Generating Images...');
-        const images = await generateImages(post.imagePrompt, Number(process.env.POST_IMAGE_COUNT) || 1);
-        console.log('Saving Post...');
-        const savedPost = await savePost({ ...post, generatedImages: images });
-        console.log('Sending WhatsApp Message...');
-        await sendWhatsAppMessage(post.title, post.content, images, savedPost.id);
+    try {
+        const post = await generatePostWithFeedback(postId);
+        if (post) {
+            console.log('Generating Images...');
+            const images = await generateImages(post.imagePrompt, Number(process.env.POST_IMAGE_COUNT) || 1);
+            const savedPost = await savePost({ ...post, generatedImages: images });
+            await sendTelegramMessage(post.title, post.content, images, savedPost.id);
+        }
+    } catch (error) {
+        console.error('Error invoking post creation with feedback:', error);
     }
 }
 
@@ -46,6 +49,17 @@ app.get('/', (req, res) => {
     res.send('Server is running');
 });
 
+app.get('/generate', (req, res) => {
+    // Header validation with x-api-key
+    const apiKey = req.headers['x-api-key'];
+    if (apiKey !== process.env.API_KEY) {
+        res.status(401).json({ message: 'Please provide a valid API key' });
+        return;
+    }
+    const ideaCount = req.query.count ? parseInt(req.query.count as string) : 2;
+    invokePostCreation(ideaCount);
+    res.json({ message: 'Post generation initiated!' });
+});
 /**
  * Example Telegram update for a callback query:
  * {
@@ -70,10 +84,10 @@ app.get('/', (req, res) => {
  *   }
  * }
  */
-app.post('/webhook', async (req, res) => {
+app.post('/webhook/telegram', async (req, res) => {
     try {
         const body = req.body;
-        console.log("Received Telegram update:", JSON.stringify(body, null, 2));
+        console.log("Received Telegram update:\n", JSON.stringify(body, null, 2));
 
         let messageData: any = {};
         // If the update is a callback query (button press)
