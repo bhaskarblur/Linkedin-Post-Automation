@@ -53,7 +53,7 @@ Please generate LinkedIn post ideas that focus on the following themes:
        - Security: Layered cyan fractal shields with wireframe patterns.
        - Cloud: Modular floating platforms with holographic blue energy cores.
        - Lighting: Cinematic volumetric rays, soft shadows, depth of field.
-       - Branding:
+       - Branding (Mandatory):
          - Bhaskar Kaura name as a sleek white cylindrical pod (anodized texture) on a pure white circular base (soft shadow), positioned top-right corner (10% width, 5% margin from edges).
        - Perspective: Dynamic angles (e.g., low-angle server views, isometric cloud layouts).
 
@@ -65,6 +65,7 @@ Please generate LinkedIn post ideas that focus on the following themes:
 
 ### Output Guidelines:
 - You must respond in JSON format and generate the number of posts as specified in the user request.
+- Images must include the branding Bhaskar Kaura name in the image.
 - Focus on generating posts that provide **value**, **insight**, and **practical advice** for professionals in the fields of System Design and AI.
 - Content should be **relevant**, **timely**, and **actionable**, ensuring it resonates with a professional LinkedIn audience.
 - Make sure the image prompt is **directly aligned** with the content of the post and provides a **clear visual representation** of the concept discussed.
@@ -78,7 +79,7 @@ export const WaitMessage = `Please wait while we schedule the post...`;
 
 export const PostScheduledMessage = (postId: string) => `Post ${postId} scheduled successfully!`;
 
-export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'(use --prompt= to generate a post with a specific prompt)\n2. To upload a post to LinkedIn type 'upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN'.\n3. To upload without image, use --no-media flag'";
+export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'(use --prompt= to generate a post with a specific prompt)\n\n2. To upload a post to LinkedIn type 'upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN'.\n\n3. To upload without image, use --no-media flag'";
 
 export const AcceptMessage = (postId: string) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload --postId=${postId} --time=HH:MM --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN.\n\nIf you want to upload the post without image, use --no-media flag.`;
 

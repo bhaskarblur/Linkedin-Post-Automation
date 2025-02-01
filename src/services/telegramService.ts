@@ -111,7 +111,7 @@ export async function processTelegramResponse(message: any) {
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
-            text: "Pleas wait while we generate a Linkedin post for you!",
+            text: "Qurating a LinkedIn post for you!",
             parse_mode: undefined,
         });
         await invokePostCreation(1, prompt, message.from); // Create 1 post
@@ -251,6 +251,7 @@ export async function processTelegramResponse(message: any) {
 
     // --- Feedback Flow ---
     if (responseText.startsWith("feedback")) {
+        // Example: feedback --postId=12345 --topic=image
         const topic = message.payload.split("_")[2];
         const post = await Post.findById(postId);
         if (post) {
@@ -265,13 +266,13 @@ export async function processTelegramResponse(message: any) {
                 text: FeedbackImprovementMessage(postId),
                 parse_mode: undefined,
             });
-
-            return;
-        } else {
-            console.log(`Post ${postId} not found.`);
         }
 
         return;
+    } else {
+        console.log(`Post ${postId} not found.`);
     }
+
+    return;
 
 }
