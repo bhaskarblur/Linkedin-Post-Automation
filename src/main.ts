@@ -17,7 +17,7 @@ const app = express();
 app.use(bodyParser.json());
 
 
-export async function invokePostCreation(ideaCount: number, prompt?: string) {
+export async function invokePostCreation(ideaCount: number, prompt?: string, chatId?: string) {
     try {
         console.log('Invoking Post Creation...');
         const posts = await generatePostIdeas(ideaCount, prompt);
@@ -25,7 +25,7 @@ export async function invokePostCreation(ideaCount: number, prompt?: string) {
             console.log('Starting to generate images for post:', post.title);
             const images = await generateImages(post.imagePrompt, Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
             const savedPost = await savePost({ ...post, generatedImages: images });
-            await sendTelegramMessage(post.title, post.content, images, savedPost.id);
+            await sendTelegramMessage(post.title, post.content, images, savedPost.id, chatId);
         }
     } catch (error) {
         console.error('Error invoking post creation:', error);

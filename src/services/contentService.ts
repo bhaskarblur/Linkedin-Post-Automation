@@ -32,7 +32,7 @@ export async function generatePostIdeas(count: number, prompt?: string): Promise
                 { role: 'system', content: POST_IDEA_PROMPT },
                 { role: 'user', content: GenerateMessage(count, prompt) },
             ],
-            max_tokens: 3600, // Adjust based on API limits
+            max_tokens: 9600, // Adjust based on API limits
             temperature: 0.7, // Controls creativity
             n: count, // Number of completions to generate
         });

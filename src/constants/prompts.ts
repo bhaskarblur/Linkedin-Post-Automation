@@ -5,29 +5,57 @@ Please generate LinkedIn post ideas that focus on the following themes:
 1. **System Design**
 2. **Artificial Intelligence (AI)**
 3. **Emerging Tech Trends**
+4. **Software Engineering**
+5. **Cloud Computing**
+6. **Security & Fraud Detection**
 
 ### Instructions:
 
 1. **Post Title**:
    - Craft a *catchy, compelling title* designed to capture the attention of a professional tech audience. The title should be bold and intriguing, encouraging readers to click and engage. Ensure the title provides a clear idea of the content's value.
+    - Use **provocative questions** or **data-driven hooks** (e.g., *“Why 63% of AI Projects Fail in Production?”*).  
    - Examples: 
      - “How AI Is Transforming the Future of Scalable Systems”
      - “Building Resilient Systems: The Importance of Microservices in 2025”
      - “Why System Design Will Be the Key to AI’s Next Breakthrough”
 
-2. **Post Content**:
-   - Write **3-4 detailed paragraphs** of **engaging, informative content**. Focus on **data-driven insights**, **current trends**, and **actionable knowledge** that will provide value to tech professionals. Your content should be:
-     - **Data-Driven**: Include relevant statistics, facts, or examples to substantiate claims (e.g., performance improvement percentages, industry standards, emerging tech studies).
-     - **Insightful and Practical**: Discuss **real-world challenges** and **innovative solutions** that software engineers are currently facing, with a focus on **System Design**, **AI**, and **emerging tech trends**.
-     - **Clear and Actionable**: Offer **step-by-step guidance** or **best practices** that readers can apply in their own work or decision-making process. For example, if discussing AI, provide suggestions on how to integrate machine learning models into system design.
-     - **Emerging Trends and Future Implications**: Highlight the long-term impact of trends like **quantum computing**, **AI-driven system optimization**, or **edge computing** on the tech industry.
-     - **Well formatted**: Use relevant hashtags at last(not more than 10), markdown formatting, a little bit of emojis, and a little bit of bold text.
+2. **Post Content**:  
+   Write **3-4 paragraphs** with this structure:  
 
-3. **Image Prompt**:
-   - Create a concise, clear, and relevant image prompt tied to the subject matter of the post. The image should be realistic, visually appealing, and meaningful, serving as a hook to capture the attention of viewers and scrollers.
-   - Ideal images: High-quality photographs or realistic renderings that illustrate concepts such as system architectures, AI applications, or emerging tech trends in action. For example, a realistic depiction of a neural network integrated into a cityscape to represent AI in urban development.
-   - The image should use modern minimalist fonts and components, with a cohesive color scheme that aligns with the post's theme, and feature your name, "Bhaskar Kaura", subtly placed in the corner.
-   - The visual should be clean, modern, and professional, reflecting the tech-driven nature of the content while being engaging and thought-provoking.
+   - **Paragraph 1: Hook + Problem**  
+     - Start with **2023-2024 statistic** (cite Gartner/McKinsey/IEEE) + urgency.  
+     - Example: *“57% of 2024 data breaches targeted APIs (IBM), yet most teams still use outdated auth protocols.”*  
+
+   - **Paragraph 2: Deep Dive (Choose ONE Focus)**:  
+     - **Case Study**: *“How [Company] solved [problem] with [tech]”* (e.g., *“PayPal cut latency 40% using gRPC”*).  
+     - **Trend Analysis**: *“Why [trend] will redefine [field] by 2025”* (e.g., homomorphic encryption for privacy).  
+     - **Scalability Guide**: *“3 Architecture Patterns for 10M+ Users”*.  
+     - **Security Alert**: *“Mitigating AI-Powered Phishing”*.  
+
+   - **Paragraph 3: Actionable Value**  
+     - Provide a **3-4 step framework** with tools (e.g., *“1) Audit APIs with Postman 2) Implement Istio…”*).  
+     - Link to **emerging trends** (e.g., *“Start testing quantum-resistant algorithms now”*).  
+
+   - **Paragraph 4: CTA**  
+     - End with a **question** or **challenge** (e.g., *“Which scalability issue keeps you up? Let’s solve it! 👇”*).  
+
+   - **Formatting**:  
+     - Use **bold** for stats (**$4.5M loss**), 2-3 emojis (🚀🔒), and markdown subheaders (*### 🛠️ Case Study*).  
+     - Include **5-8 hashtags**: Mix niche (*#APISecurity*) + broad (*#TechTrends*).  
+
+
+3. **Image Prompt** (Fal AI):
+   - Generate ultra-detailed, cinematic 3D renders merging photorealistic tech elements with symbolic metaphors:
+   - Core Elements:
+     - Infrastructure: Server racks/cloud nodes/circuit boards (PBR materials: brushed metal, glass, carbon fiber).
+     - Metaphors:
+       - AI: Glowing neural networks with neon-purple/orange data streams (subsurface scattering effect).
+       - Security: Layered cyan fractal shields with wireframe patterns.
+       - Cloud: Modular floating platforms with holographic blue energy cores.
+       - Lighting: Cinematic volumetric rays, soft shadows, depth of field.
+       - Branding:
+         - Bhaskar Kaura name as a sleek white cylindrical pod (anodized texture) on a pure white circular base (soft shadow), positioned top-right corner (10% width, 5% margin from edges).
+       - Perspective: Dynamic angles (e.g., low-angle server views, isometric cloud layouts).
 
 4. **JSON Format**:
    Return your response in a **JSON format** with the following keys:
@@ -36,6 +64,7 @@ Please generate LinkedIn post ideas that focus on the following themes:
    - **imagePrompt**: A detailed and well explained prompt for generating a related image.
 
 ### Output Guidelines:
+- You must respond in JSON format and generate the number of posts as specified in the user request.
 - Focus on generating posts that provide **value**, **insight**, and **practical advice** for professionals in the fields of System Design and AI.
 - Content should be **relevant**, **timely**, and **actionable**, ensuring it resonates with a professional LinkedIn audience.
 - Make sure the image prompt is **directly aligned** with the content of the post and provides a **clear visual representation** of the concept discussed.
@@ -49,13 +78,13 @@ export const WaitMessage = `Please wait while we schedule the post...`;
 
 export const PostScheduledMessage = (postId: string) => `Post ${postId} scheduled successfully!`;
 
-export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'(use --prompt= to generate a post with a specific prompt)\n2. To upload a post to LinkedIn type 'upload_postId_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN'.\n3. To upload without image, use --no-media flag'";
+export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'(use --prompt= to generate a post with a specific prompt)\n2. To upload a post to LinkedIn type 'upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN'.\n3. To upload without image, use --no-media flag'";
 
-export const AcceptMessage = (postId: string) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload_${postId}_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN.\n\nIf you want to upload the post without image, use --no-media flag.`;
+export const AcceptMessage = (postId: string) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload --postId=${postId} --time=HH:MM --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN.\n\nIf you want to upload the post without image, use --no-media flag.`;
 
 export const RejectMessage = (postId: string) => `Please provide feedback on why you are rejecting this post. Choose from the options below which you think is the reason:\n1. Image \n2. Content idea\n3. Post content`;
 
-export const FeedbackImprovementMessage = (postId: string) => `Please tell us how you would like to improve this post.\n\nCopy & Follow the format to write your improvement: improvement_${postId}: your improvement message`;
+export const FeedbackImprovementMessage = (postId: string) => `Please tell us how you would like to improve this post.\n\nCopy & Follow the format to write your improvement: improvement --postId=${postId} --feedback=your improvement message`;
 
 export const RegenerateMessage = (post: any) => `
                     Regenerate the post based on the following feedbacks.
@@ -69,7 +98,11 @@ export const RegenerateMessage = (post: any) => `
                     - *What is not good*: ${post.feedbackTopic}  
                     - *Improvement*: ${post.feedbackImprovement}
                 
-                    Please ensure that the post aligns with the reviewer's suggestions, maintaining the overall quality while addressing the specific concerns.
+                    Please ensure that the post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
                     `;
 
 export const GenerateMessage = (count: number, prompt?: string) => `Generate ${count} posts for LinkedIn.${prompt ? `\n\nPrompt: ${prompt}` : ''}`;
+
+export const MissingUploadArguements = "Please provide all the required arguments. Format: upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN";
+
+export const MissingImprovementArguements = "Please provide all the required arguments. Format: improvement --postId=12345 --feedback=your improvement message";

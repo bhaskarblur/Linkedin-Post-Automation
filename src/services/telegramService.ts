@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AcceptMessage, FeedbackImprovementMessage, InvalidInputMessage, NoAccessTokenMessage, PostScheduledMessage, RejectMessage, WaitMessage } from "../constants/prompts";
+import { AcceptMessage, FeedbackImprovementMessage, InvalidInputMessage, MissingImprovementArguements, MissingUploadArguements, NoAccessTokenMessage, PostScheduledMessage, RejectMessage, WaitMessage } from "../constants/prompts";
 import { invokePostCreation, invokePostCreationWithFeedback } from "../main";
 import { IImage, Post } from "../models/Post"; // Your Post model
 import { handlePostTimeInput } from "./linkedinService";
@@ -36,7 +36,7 @@ export async function failedToSchedulePostMessage() {
  * @param images Array of generated images.
  * @param postId The database post ID.
  */
-export async function sendTelegramMessage(title: string, content: string, images: IImage[], postId: string) {
+export async function sendTelegramMessage(title: string, content: string, images: IImage[], postId: string, chatId?: string) {
     try {
         console.log('Sending Telegram Message...');
         const text = `Post Idea: *${title}*\n\n${content}`;
@@ -53,7 +53,7 @@ export async function sendTelegramMessage(title: string, content: string, images
         // Use sendPhoto to include an image with a truncated caption
         const photoUrl = images[0].url;
         const photoPayload = {
-            chat_id: RECEIVER_TELEGRAM_CHAT_ID,
+            chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
             photo: photoUrl,
             caption: `Title: ${title}\n\n🚀 Full post content is below`,
             parse_mode: "Markdown",
@@ -111,21 +111,26 @@ export async function processTelegramResponse(message: any) {
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
-            text: "Pleas wait while we generate a post for LinkedIn!",
+            text: "Pleas wait while we generate a Linkedin post for you!",
             parse_mode: undefined,
         });
-        await invokePostCreation(1, prompt); // Create 1 post
+        await invokePostCreation(1, prompt, message.from); // Create 1 post
         return;
     }
     // Receive improvement message
-    if (responseText.split("_")[0] === "improvement") {
-        // Example: improvement_12345: <improvement message>
-        const msgPrefix = responseText.split(":")[0]; // improvement_12345
-        postId = msgPrefix.split("_")[1].replace(':', '');
-        const improvementMessage = responseText.split(":")[1]; // <improvement message>
+    if (responseText.startsWith("improvement")) {
+        // Example: improvement --postId=12345 --feedback=
+        const postId = responseText.split("--postId=")[1].split("--feedback=")[0];
+        const improvementMessage = responseText.split("--feedback=")[1]; // <improvement message>
         console.log("Improvement message received for post:", postId, improvementMessage);
-        if (!improvementMessage) {
+        if (!improvementMessage || !postId) {
             console.error("Improvement message is empty.");
+            const url = `${TELEGRAM_API_URL}/sendMessage`;
+            await axios.post(url, {
+                chat_id: message.from,
+                text: MissingImprovementArguements,
+                parse_mode: undefined,
+            });
             return;
         }
         const post = await Post.findById(postId);
@@ -143,11 +148,12 @@ export async function processTelegramResponse(message: any) {
         return;
     }
 
-    // Receive manual upload message, Format: upload_postId_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN
+    // Receive manual upload message, Format: upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
     if (responseText.startsWith("upload")) {
-        const postId = responseText.split("_")[1];
-        const time = responseText.split("_")[2];
-        let accessToken = responseText.split("_")[3];
+        // Example: upload --postId=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
+        const postId = responseText.split("--postId=")[1].split("--time=")[0];
+        const time = responseText.split("--time=")[1].split("--accessToken=")[0];
+        let accessToken = responseText.split("--accessToken=")[1].split("--no-media")[0];
         let useMedia = true;
         if (accessToken.includes("--no-media")) {
             useMedia = false;
@@ -162,6 +168,15 @@ export async function processTelegramResponse(message: any) {
             });
             return;
         }
+        if (!time || !postId) {
+            const url = `${TELEGRAM_API_URL}/sendMessage`;
+            await axios.post(url, {
+                chat_id: message.from,
+                text: MissingUploadArguements,
+                parse_mode: undefined,
+            });
+            return;
+        }
         if (postId) {
             console.log('Scheduling post...');
             const url = `${TELEGRAM_API_URL}/sendMessage`;
@@ -170,7 +185,7 @@ export async function processTelegramResponse(message: any) {
                 text: WaitMessage,
                 parse_mode: undefined,
             });
-            const success = await handlePostTimeInput(postId, time, accessToken);
+            const success = await handlePostTimeInput(postId, time, accessToken, useMedia);
             if (!success) {
                 await failedToSchedulePostMessage();
             }
