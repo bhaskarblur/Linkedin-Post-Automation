@@ -103,15 +103,18 @@ export async function processTelegramResponse(message: any) {
     }
 
     // Generate post
-    if (responseText === "/generate") {
+    if (responseText.startsWith("/generate")) {
+        // Example: /generate --prompt= "Generate a post about the future of AI"
         console.log("Generating post...");
+        const prompt = responseText.split("--prompt=")[1];
+
         const url = `${TELEGRAM_API_URL}/sendMessage`;
         await axios.post(url, {
             chat_id: message.from,
             text: "Generating post...",
             parse_mode: undefined,
         });
-        await invokePostCreation(1); // Create 1 post
+        await invokePostCreation(1, prompt); // Create 1 post
         return;
     }
     // Receive improvement message

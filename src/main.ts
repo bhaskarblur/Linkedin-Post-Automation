@@ -17,10 +17,10 @@ const app = express();
 app.use(bodyParser.json());
 
 
-export async function invokePostCreation(ideaCount: number) {
+export async function invokePostCreation(ideaCount: number, prompt?: string) {
     try {
         console.log('Invoking Post Creation...');
-        const posts = await generatePostIdeas(ideaCount);
+        const posts = await generatePostIdeas(ideaCount, prompt);
         for (const post of posts) {
             console.log('Starting to generate images for post:', post.title);
             const images = await generateImages(post.imagePrompt, Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
@@ -70,12 +70,13 @@ app.get('/', (req, res) => {
 app.get('/generate', (req, res) => {
     // Header validation with x-api-key
     const apiKey = req.headers['x-api-key'];
+    const prompt = req.query.prompt as string;
     if (apiKey !== process.env.API_KEY) {
         res.status(401).json({ message: 'Please provide a valid API key' });
         return;
     }
     const ideaCount = req.query.count ? parseInt(req.query.count as string) : 2;
-    invokePostCreation(ideaCount);
+    invokePostCreation(ideaCount, prompt);
     res.json({ message: 'Post generation initiated!' });
 });
 /**

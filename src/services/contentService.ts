@@ -22,7 +22,7 @@ const openai = new OpenAI({
 
 
 // Function to generate post ideas using GPT-4o
-export async function generatePostIdeas(count: number): Promise<PostIdea[]> {
+export async function generatePostIdeas(count: number, prompt?: string): Promise<PostIdea[]> {
     try {
 
         // Call the OpenAI API with the GPT-4o model
@@ -30,7 +30,7 @@ export async function generatePostIdeas(count: number): Promise<PostIdea[]> {
             model: 'gpt-4o', // Specify the GPT-4o model
             messages: [
                 { role: 'system', content: POST_IDEA_PROMPT },
-                { role: 'user', content: GenerateMessage(count) },
+                { role: 'user', content: GenerateMessage(count, prompt) },
             ],
             max_tokens: 3600, // Adjust based on API limits
             temperature: 0.7, // Controls creativity

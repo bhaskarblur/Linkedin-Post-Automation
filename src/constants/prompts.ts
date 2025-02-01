@@ -49,7 +49,7 @@ export const WaitMessage = `Please wait while we schedule the post...`;
 
 export const PostScheduledMessage = (postId: string) => `Post ${postId} scheduled successfully!`;
 
-export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'\n2. To upload a post to LinkedIn type 'upload_postId_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN'.\n3. To upload a post without image type 'upload_postId_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN --no-media'";
+export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type '/generate'(use --prompt= to generate a post with a specific prompt)\n2. To upload a post to LinkedIn type 'upload_postId_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN'.\n3. To upload without image, use --no-media flag'";
 
 export const AcceptMessage = (postId: string) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post: upload_${postId}_HH:MM_YOUR_LINKEDIN_ACCESS_TOKEN.\n\nIf you want to upload the post without image, use --no-media flag.`;
 
@@ -72,4 +72,4 @@ export const RegenerateMessage = (post: any) => `
                     Please ensure that the post aligns with the reviewer's suggestions, maintaining the overall quality while addressing the specific concerns.
                     `;
 
-export const GenerateMessage = (count: number) => `Generate ${count} posts for LinkedIn.`;
+export const GenerateMessage = (count: number, prompt?: string) => `Generate ${count} posts for LinkedIn.${prompt ? `\n\nPrompt: ${prompt}` : ''}`;

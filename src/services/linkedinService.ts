@@ -36,7 +36,7 @@ export async function handlePostTimeInput(postId: string, time: string, linkedin
             await post.save();
 
             // Now schedule the post on LinkedIn
-            return await scheduleLinkedInPost(post, postId, linkedinAccessToken);
+            return await scheduleLinkedInPost(post, postTime, postId, linkedinAccessToken);
         }
         return false;
     } catch (error) {
@@ -46,7 +46,7 @@ export async function handlePostTimeInput(postId: string, time: string, linkedin
 }
 
 // Function to schedule the post on LinkedIn
-async function scheduleLinkedInPost(post: any, postId: string, accessToken?: string, uploadMedia: boolean = true): Promise<boolean> {
+async function scheduleLinkedInPost(post: any, time: Date, postId: string, accessToken?: string, uploadMedia: boolean = true): Promise<boolean> {
     try {
         console.log('Initializing LinkedIn post scheduling...');
         const userAccessToken = accessToken == process.env.API_KEY ? process.env.LINKEDIN_ACCESS_TOKEN : accessToken;
@@ -137,15 +137,22 @@ async function scheduleLinkedInPost(post: any, postId: string, accessToken?: str
             };
         }
 
-        const postResponse = await axios.post('https://api.linkedin.com/v2/ugcPosts', postData, {
-            headers: {
-                'Authorization': `Bearer ${userAccessToken}`,
-                'X-Restli-Protocol-Version': '2.0.0',
-                'Content-Type': 'application/json',
-            },
-            timeout: 10000,
-        });
-        console.log('Post scheduled on LinkedIn:', postResponse.data);
+        // Step 6: Schedule the Post (Delay until the target time)
+        const currentTime = new Date();
+        const targetTime = new Date(time);
+        let postSuccess = false;
+        if (targetTime <= currentTime) {
+            console.log('Target time has already passed, posting immediately...');
+            postSuccess = await postToLinkedIn(postData, userAccessToken);
+        } else {
+            const delay = targetTime.getTime() - currentTime.getTime();
+            console.log(`Scheduling post for ${targetTime.toLocaleString()}...`);
+
+            // Delay the post until the scheduled time
+            setTimeout(async () => {
+                postSuccess = await postToLinkedIn(postData, userAccessToken);
+            }, delay);
+        }
 
         // Update the post status to "scheduled"
         const _post = await Post.findById(postId);
@@ -154,7 +161,7 @@ async function scheduleLinkedInPost(post: any, postId: string, accessToken?: str
             await _post.save();
         }
 
-        return true;
+        return postSuccess;
     } catch (error: any) {
         console.error('Error scheduling LinkedIn post:', error);
         if (error.isAxiosError) {
@@ -170,6 +177,24 @@ async function scheduleLinkedInPost(post: any, postId: string, accessToken?: str
     }
 }
 
+// Helper function to post to LinkedIn
+async function postToLinkedIn(postData: any, userAccessToken: string): Promise<boolean> {
+    try {
+        const postResponse = await axios.post('https://api.linkedin.com/v2/ugcPosts', postData, {
+            headers: {
+                'Authorization': `Bearer ${userAccessToken}`,
+                'X-Restli-Protocol-Version': '2.0.0',
+                'Content-Type': 'application/json',
+            },
+            timeout: 10000,
+        });
+        console.log('Post successfully published:', postResponse.data);
+        return true;
+    } catch (error) {
+        console.error('Error posting to LinkedIn:', error);
+        return false;
+    }
+}
 // Step 1: Register the upload
 async function registerUpload(accessToken: string, personId: string) {
     const url = 'https://api.linkedin.com/v2/assets?action=registerUpload';
