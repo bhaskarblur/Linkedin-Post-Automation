@@ -1,10 +1,12 @@
 import bodyParser from 'body-parser';
 import express from 'express';
+import mongoose from 'mongoose';
 import cron from 'node-cron';
 import { generatePostIdeas, generatePostWithFeedback } from './services/contentService';
 import { generateImages } from './services/imageService';
 import { savePost } from './services/postService';
-import { processWhatsAppResponse, sendWhatsAppMessage } from './services/whatsappService';
+import { processTelegramResponse } from './services/telegramService';
+import { sendWhatsAppMessage } from './services/whatsappService';
 
 cron.schedule('0 0 * * *', async () => {
     console.log('CRON: Running LinkedIn Automation Bot...');
@@ -40,86 +42,65 @@ export async function invokePostCreationWithFeedback(postId: string) {
     }
 }
 
+app.get('/', (req, res) => {
+    res.send('Server is running');
+});
 
 /**
- * Sample webhook body from Meta’s WhatsApp Business API:
+ * Example Telegram update for a callback query:
  * {
- *   "object": "whatsapp_business_account",
- *   "entry": [{
- *     "id": "WHATSAPP_BUSINESS_ID",
- *     "changes": [{
- *       "value": {
- *         "messaging_product": "whatsapp",
- *         "metadata": { "phone_number_id": "PHONE_NUMBER_ID" },
- *         "contacts": [{
- *            "profile": { "name": "John Doe" },
- *            "wa_id": "USER_WHATSAPP_NUMBER"
- *         }],
- *         "messages": [{
- *           "from": "USER_WHATSAPP_NUMBER",
- *           "id": "wamid.HASH_ID",
- *           "timestamp": "1700000000",
- *           "type": "button", // or "text"
- *           "button": {
- *             "text": "✅ Accept",
- *             "payload": "ACCEPT_666666666666666666666666"
- *           }
- *           // OR if type is text:
- *           // "text": { "body": "14:30" }
- *         }]
- *       },
- *       "field": "messages"
- *     }]
- *   }]
+ *   "update_id": 123456789,
+ *   "callback_query": {
+ *     "id": "unique-callback-id",
+ *     "from": { "id": 987654321, "first_name": "John", ... },
+ *     "message": { "message_id": 55, "chat": { "id": 987654321, ... }, "text": "Post Idea: ..." },
+ *     "data": "ACCEPT_1234567890"  // our payload
+ *   }
+ * }
+ *
+ * Example Telegram update for a text message:
+ * {
+ *   "update_id": 123456790,
+ *   "message": {
+ *     "message_id": 56,
+ *     "from": { "id": 987654321, "first_name": "John", ... },
+ *     "chat": { "id": 987654321, ... },
+ *     "date": 1610000000,
+ *     "text": "14:30"
+ *   }
  * }
  */
-app.post('/webhook/whatsapp', async (req, res) => {
+app.post('/webhook', async (req, res) => {
     try {
         const body = req.body;
-        console.log('Received WhatsApp Webhook:', JSON.stringify(body, null, 2));
+        console.log("Received Telegram update:", JSON.stringify(body, null, 2));
 
-        // Extract the first message from the first entry change
-        if (
-            body.object === 'whatsapp_business_account' &&
-            body.entry &&
-            body.entry[0].changes &&
-            body.entry[0].changes[0].value &&
-            body.entry[0].changes[0].value.messages &&
-            body.entry[0].changes[0].value.messages.length > 0
-        ) {
-            const incomingMessage = body.entry[0].changes[0].value.messages[0];
-            let payload = null;
-            let messageText = '';
-
-            // If the message is of type "button", extract its text and payload
-            if (incomingMessage.type === 'button' && incomingMessage.button) {
-                messageText = incomingMessage.button.text;
-                payload = incomingMessage.button.payload;
-            }
-            // Otherwise, if it's a text message, extract the text.
-            else if (incomingMessage.type === 'text' && incomingMessage.text) {
-                messageText = incomingMessage.text.body;
-                // For text responses (e.g., time input), we assume the payload was included
-                // from a previous interaction. Adjust as needed.
-                payload = incomingMessage.context?.id || null;
-            }
-
-            // Create a unified message object to pass along:
-            const messageData = {
-                body: messageText,
-                payload, // e.g., "ACCEPT_666666666666666666666666" or null for text replies
-                from: incomingMessage.from, // The sender's WhatsApp number
-            };
-
-            await processWhatsAppResponse(messageData);
+        let messageData: any = {};
+        // If the update is a callback query (button press)
+        if (body.callback_query) {
+            messageData.body = body.callback_query.data; // e.g., "ACCEPT_12345" or "REJECT_12345"
+            messageData.payload = body.callback_query.data;
+            messageData.from = body.callback_query.from.id; // Telegram user id
+        }
+        // Otherwise, if it's a regular text message
+        else if (body.message) {
+            messageData.body = body.message.text; // e.g., "14:30" or feedback text
+            messageData.payload = null; // For text responses, we may not have payload info.
+            messageData.from = body.message.chat.id; // Chat id (usually same as user id in private chats)
         }
 
-        res.status(200).send({ status: 'Message processed' });
+        await processTelegramResponse(messageData);
+        res.status(200).send({ status: "Message processed" });
     } catch (error) {
-        console.error('Error processing WhatsApp response:', error);
-        res.status(500).send({ error: 'Internal server error' });
+        console.error("Error processing Telegram update:", error);
+        res.status(500).send({ error: "Internal server error" });
     }
 });
 
+mongoose.connect(process.env.MONGODB_URI || '')
+    .then(() => console.log('MongoDB connected successfully'))
+    .catch((error) => console.error('MongoDB connection error:', error));
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
