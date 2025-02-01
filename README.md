@@ -1,4 +1,4 @@
-#LinkedIn Automation Bot for Content Creation & Scheduling
+# LinkedIn Automation Bot for Content Creation & Scheduling
 This is a Node.js-based CLI automation bot that generates content ideas, creates images, and posts to LinkedIn on your behalf. It helps streamline content creation for tech professionals (SDE, System Design, AI, etc.) with minimal manual intervention. The bot also allows you to approve or reject content via WhatsApp and schedule posts on LinkedIn.
 
 ## Features
