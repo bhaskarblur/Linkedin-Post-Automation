@@ -139,17 +139,21 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
         }
 
         // Step 6: Schedule the Post (Delay until the target time)
-        const currentTime = new Date();
-        const targetTime = new Date(time);
-        console.log('Current Time:', currentTime);
-        console.log('Target Time:', targetTime);
+        // Convert input time (assumed to be in IST) to UTC
+        const targetTimeIST = new Date(time); // Assuming 'time' is in IST
+        const targetTimeUTC = new Date(targetTimeIST.getTime() - (5.5 * 60 * 60 * 1000)); // Convert IST to UTC
+
+        const currentTimeUTC = new Date(); // Current UTC time
+
+        console.log('Current Time (UTC):', currentTimeUTC);
+        console.log('Target Time (UTC):', targetTimeUTC);
         let postSuccess = false;
-        if (targetTime <= currentTime) {
+        if (targetTimeUTC <= currentTimeUTC) {
             console.log('Target time has already passed, posting immediately...');
             postSuccess = await postToLinkedIn(postData, userAccessToken);
         } else {
-            const delay = targetTime.getTime() - currentTime.getTime();
-            console.log(`Scheduling post for ${targetTime.toLocaleString()}...`);
+            const delay = targetTimeUTC.getTime() - currentTimeUTC.getTime();
+            console.log(`Scheduling post for ${targetTimeUTC.toLocaleString()}...`);
             postSuccess = true;
             // Delay the post until the scheduled time
             setTimeout(async () => {
