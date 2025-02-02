@@ -369,16 +369,20 @@ export async function processTelegramResponse(message: any) {
         if (responseText.startsWith("reject")) {
 
             const post = await Post.findById(postId);
+            const inlineKeyboard = [
+                [
+                    { text: `${post?.generatedImages?.length && post.generatedImages.length > 0 ? "Image" : "Need an image"}`, callback_data: `FEEDBACK_${postId}_image` },
+                    { text: "Content idea", callback_data: `FEEDBACK_${postId}_idea` },
+                    { text: "Post content", callback_data: `FEEDBACK_${postId}_content` }
+                ]
+            ];
+
             // Ask for rejection feedback.
             await axios.post(url, {
                 chat_id: message.from,
                 text: RejectMessage(postId),
                 reply_markup: JSON.stringify({
-                    inline_keyboard: [
-                        ...(post?.generatedImages?.length && post.generatedImages.length > 0 ? [{ text: "Image", callback_data: `FEEDBACK_${postId}_image` }] : []),
-                        { text: "Content idea", callback_data: `FEEDBACK_${postId}_idea` },
-                        { text: "Post content", callback_data: `FEEDBACK_${postId}_content` }
-                    ]
+                    inline_keyboard: inlineKeyboard,
                 })
             });
 
