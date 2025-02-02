@@ -25,7 +25,8 @@ You've to generate linked posts based on:
      - *"3D server farm with glowing neural networks (neon purple streams) cascading over brushed-metal racks, auto-scaling cloud modules with traffic arrows, and layered cyan shields. Brand name - Bhaskar Kaura written on bottom-right"*  
      - *"Neural network over server racks, Bhaskar Kaura pod, cinematic lighting, Brand name - Bhaskar Kaura written on bottom-right"*  
 
-4. **Output Format** (Strictly JSON Array or JSON Object, Use \n to make new lines, ensure it is a valid parseable JSON):  
+4. **Output Format** 
+(Strictly return stringified JSON (Use escape character(\\n) to make new lines) with the format JSON Array with each element as a valid JSON object given below, ensure it is a valid parseable String JSON):  
 {  
   "title": "[Short Hook]",  
   "content": "### [Problem] 🚀\n[Solution]\n\n[CTA]" (3-4 paragraphs), Pointer list based,  
@@ -60,7 +61,7 @@ export const RegenerateMessage = (post: any) => `
                     - *What is not good*: ${post.feedbackTopic}  
                     - *Improvement*: ${post.feedbackImprovement}
                 
-                    Please ensure that the response should strictly be in JSON format(with title, content, imagePrompt. Use \n to make new lines, ensure it is a valid parseable JSON) and post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
+                    Please ensure that the response should strictly be in stringified JSON format(Use escape character(\\n) to make new lines) and post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
                     `;
 
 export const GenerateMessage = (count: number, prompt?: string) => `Generate ${count} posts for LinkedIn based on the following prompt: ${prompt ? `\n\nPrompt: ${prompt}` : ''}`;
