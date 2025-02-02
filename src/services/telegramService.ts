@@ -71,7 +71,7 @@ export async function sendTelegramMessage(title: string, content: string, images
             chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
             photo: photoUrl,
             text: "Generated Post Image",
-            caption: `Title: ${title}\n\n🚀 Full post content is below`,
+            caption: `Title: ${title}\n\n🚀 Full post content below`,
             parse_mode: "Markdown",
             reply_markup: inlineKeyboard,
         };
@@ -145,11 +145,11 @@ export async function processTelegramResponse(message: any) {
             console.log("Received improvement message: ", responseText);
 
             // Extract postId
-            const postIdMatch = responseText.match(/--postid=(\d+)/);
+            const postIdMatch = responseText.match(/--postid=([a-fA-F0-9]{24})/);
             const postId = postIdMatch ? postIdMatch[1] : null;
 
             // Extract reason (optional)
-            const reasonMatch = responseText.match(/--reason=([\w-]+)/);
+            const reasonMatch = responseText.match(/--reason=([\w\s]+)/);
             const reason = reasonMatch ? reasonMatch[1] : null;
 
             // Extract feedback (required)
@@ -188,7 +188,7 @@ export async function processTelegramResponse(message: any) {
             // --title and --content are optional, so we need to check if they are present
 
             // Regex to capture parameters dynamically
-            const postIdMatch = responseText.match(/--postid=(\S+)/);
+            const postIdMatch = responseText.match(/--postid=([a-fA-F0-9]{24})/);
             const titleMatch = responseText.match(/--title=([^\n\r-]+)/);
             const contentMatch = responseText.match(/--content=(.+)/);
 
@@ -221,7 +221,7 @@ export async function processTelegramResponse(message: any) {
             const post = await Post.findById(postId);
             if (post) {
                 if (title) {
-                    post.title = title;
+                    post.title = title.charAt(0).toUpperCase() + title.slice(1);
                 }
                 if (content) {
                     post.content = content;
@@ -234,12 +234,13 @@ export async function processTelegramResponse(message: any) {
                 });
                 await sendTelegramMessage(post.title, post.content, post.generatedImages, post.id, message.from);
             }
+            return;
         }
 
         // Receive manual upload message, Format: upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
         if (responseText.toLowerCase().trim().startsWith("/upload")) {
             // Example: /upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN --apiKey=YOUR_FLUX_API_KEY --no-media
-            const postIdMatch = responseText.match(/--postid=(\S+)/);
+            const postIdMatch = responseText.match(/--postid=([a-fA-F0-9]{24})/);
             const timeMatch = responseText.match(/--time=(\S+)/);
             const accessTokenMatch = responseText.match(/--accessToken=(\S+)/);
             const apiKeyMatch = responseText.match(/--apiKey=(\S+)/);
