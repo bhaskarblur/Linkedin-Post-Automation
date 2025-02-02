@@ -2,7 +2,7 @@ import bodyParser from 'body-parser';
 import express from 'express';
 import mongoose from 'mongoose';
 import cron from 'node-cron';
-import { Post } from './models/Post';
+import { IImage, Post } from './models/Post';
 import { generatePostIdeas, generatePostWithFeedback } from './services/contentService';
 import { generateImages } from './services/imageService';
 import { savePost } from './services/postService';
@@ -17,13 +17,17 @@ const app = express();
 app.use(bodyParser.json());
 
 
-export async function invokePostCreation(ideaCount: number, prompt?: string, chatId?: string) {
+export async function invokePostCreation(ideaCount: number, prompt?: string, generateImage: boolean = true, chatId?: string) {
     try {
         console.log('Invoking Post Creation...');
         const posts = await generatePostIdeas(ideaCount, prompt);
         for (const post of posts) {
             console.log('Starting to generate images for post:', post.title);
-            const images = await generateImages(post.imagePrompt, Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
+            let images: IImage[] = [];
+            // If generateImage is true, then generate images
+            if (generateImage) {
+                images = await generateImages(post.imagePrompt, Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
+            }
             const savedPost = await savePost({ ...post, generatedImages: images });
             await sendTelegramMessage(post.title, post.content, images, savedPost.id, chatId);
         }

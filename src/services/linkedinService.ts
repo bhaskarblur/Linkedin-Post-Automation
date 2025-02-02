@@ -95,7 +95,7 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
             console.log('Asset ID:', assetId);
 
             // Step 3: Upload the Image File to LinkedIn
-            const imageBuffer = await fetch(post.generatedImages[0].url).then(res => res.arrayBuffer());
+            const imageBuffer = await fetch(post.generatedImages[0]?.url).then(res => res.arrayBuffer());
             console.log('Generated Image Buffer:', imageBuffer);
             await axios.put(uploadUrl, imageBuffer, {
                 headers: {

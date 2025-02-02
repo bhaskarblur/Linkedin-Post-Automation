@@ -82,26 +82,29 @@ export async function sendTelegramMessage(title: string, content: string, images
 
         console.log("Sending Telegram message with post:", title);
         // Use sendPhoto to include an image with a truncated caption
-        const photoUrl = images[0].url;
-        const photoPayload = {
-            chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
-            photo: photoUrl,
-            text: "Generated Post Image",
-            caption: `Title: ${title}\n\n🚀 Full post content below`,
-            parse_mode: "Markdown",
-            reply_markup: inlineKeyboard,
-        };
+        const photoUrl = images[0]?.url;
+        if (photoUrl) {
+            const photoPayload = {
+                chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
+                photo: photoUrl,
+                text: "Generated Post Image",
+                caption: `Title: ${title}\n\n🚀 Full post content below`,
+                parse_mode: "Markdown",
+                reply_markup: inlineKeyboard,
+            };
+            // Send the image first
+            await axios.post(`${TELEGRAM_API_URL}/sendPhoto`, photoPayload);
+            console.log("Telegram post photo sent successfully.");
+        }
 
-        // Send the image first
-        await axios.post(`${TELEGRAM_API_URL}/sendPhoto`, photoPayload);
 
-        console.log("Telegram post photo sent successfully.");
         // Send full content separately as a text message
         if (text.length > maxCaptionLength) {
             const textPayload = {
                 chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
                 text: `📌 *Full Post Idea:*\n\n${content}\n\n*Note: To edit the post, use\n/edit --postid=${postId} --title=New Title --content=New Content*`,
                 parse_mode: "Markdown",
+                reply_markup: !photoUrl ? inlineKeyboard : undefined, // If no image is sent, then set the inline keyboard to this message
 
             };
             await axios.post(url, textPayload);
@@ -114,7 +117,6 @@ export async function sendTelegramMessage(title: string, content: string, images
         return await sendTelegramMessage(title, content, images, postId, chatId);
     }
 }
-
 
 /**
  * Process the Telegram response (either from a callback query or a text message).
@@ -139,9 +141,11 @@ export async function processTelegramResponse(message: any) {
 
         // Generate post
         if (responseText.toLowerCase().trim().startsWith("/generate")) {
-            // Example: /generate --prompt=Generate a post about the future of AI
+            // Example: /generate --no-media --prompt=Generate a post about the future of AI
+            // --no-media is optional, it can be used if you don't want to generate an image
             console.log("Generating post...");
             const prompt = responseText.split("--prompt=")[1];
+            const noMedia = responseText.includes("--no-media");
             if (!prompt) {
                 console.error("Prompt is empty.");
             }
@@ -151,7 +155,7 @@ export async function processTelegramResponse(message: any) {
                 text: "Generating a LinkedIn post for you! Please wait...",
                 parse_mode: undefined,
             });
-            await invokePostCreation(1, prompt, message.from); // Create 1 post
+            await invokePostCreation(1, prompt, !noMedia, message.from); // Create 1 post
             return;
         }
         // Receive improvement message
@@ -320,7 +324,8 @@ export async function processTelegramResponse(message: any) {
                     });
                     return;
                 }
-                const success = await handlePostTimeInput(postId, time, accesstoken, useMedia);
+                const shouldUploadMedia = useMedia && post.generatedImages.length > 0;
+                const success = await handlePostTimeInput(postId, time, accesstoken, shouldUploadMedia);
                 if (!success) {
                     await failedToSchedulePostMessage();
                     return;
@@ -362,6 +367,8 @@ export async function processTelegramResponse(message: any) {
 
         // --- Reject Flow ---
         if (responseText.startsWith("reject")) {
+
+            const post = await Post.findById(postId);
             // Ask for rejection feedback.
             await axios.post(url, {
                 chat_id: message.from,
@@ -369,9 +376,9 @@ export async function processTelegramResponse(message: any) {
                 reply_markup: JSON.stringify({
                     inline_keyboard: [
                         [
-                            { text: "1. Image", callback_data: `FEEDBACK_${postId}_image` },
-                            { text: "2. Content idea", callback_data: `FEEDBACK_${postId}_idea` },
-                            { text: "3. Post content", callback_data: `FEEDBACK_${postId}_content` }
+                            post?.generatedImages?.length && post.generatedImages.length > 0 ? { text: "Image", callback_data: `FEEDBACK_${postId}_image` } : null,
+                            { text: "Content idea", callback_data: `FEEDBACK_${postId}_idea` },
+                            { text: "Post content", callback_data: `FEEDBACK_${postId}_content` }
                         ],
                     ]
                 })

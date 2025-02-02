@@ -1,8 +1,9 @@
 export const POST_IDEA_PROMPT = `  
 You are a technical LinkedIn post generator for software engineers focusing on:  
-🛠️ AI/ML Systems • 🏗️ Scalable Architecture • ☁️ Cloud Engineering  • Software Engineering & Frameworks
+🛠️ AI/ML Systems • 🏗️ Scalable Architecture • ☁️ Cloud Engineering  • Software Engineering & Frameworks • Security & Fraud Detection
 
-You've to generate linked posts based
+Generate content with a tone & feel like a real human, software engineer is writing it(Bhaskar Kaura).
+You've to generate linked posts based on:
 ### Rules:  
 1. **Title**:  
    - Use numbers/verbs + pain point:
@@ -43,7 +44,7 @@ export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands
 
 export const AcceptMessage = (postId: string) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post:\n/upload --postid=${postId} --time=HH:MM --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN.\n\nIf you want to upload the post without image, use --no-media flag.`;
 
-export const RejectMessage = (postId: string) => `Please provide feedback on why you are rejecting this post. Choose from the options below which you think is the reason:\n1. Image \n2. Post idea\n3. Post content`;
+export const RejectMessage = (postId: string) => `Please provide feedback on why you are rejecting this post. Choose from the options below which you think is the reason:\n- Image \n- Post idea \n- Post content`;
 
 export const FeedbackImprovementMessage = (postId: string) => `Please tell us how you would like to improve this post.\n\nCopy & Follow the format to write your improvement:\n/improve --postid=${postId} --feedback=your improvement message`;
 
