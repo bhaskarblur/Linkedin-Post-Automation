@@ -46,7 +46,7 @@ This is a Node.js-based CLI automation bot that generates content ideas, creates
 - The image is sent to the Telegram bot for approval.
 - If approved, the bot posts the image to LinkedIn.
 - The bot then schedules the post on LinkedIn.
-- The bot then sends a success message to the Telegram bot.
+- The bot then sends a success message to the Telegram.
 
 # License
 This project is open-sourced under the MIT License - see the LICENSE file for details.
