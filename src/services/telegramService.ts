@@ -52,7 +52,7 @@ export async function failedToGeneratePostWithFeedbackMessage(errorMessage: stri
 export async function sendTelegramMessage(title: string, content: string, images: IImage[], postId: string, chatId?: string) {
     try {
         console.log('Sending Telegram Message...');
-        const text = `Post Idea: *${title}*\n\n${content}`;
+        const text = `📌 *Post Idea:*\n\n${title}\n\n${content}`;
         const maxCaptionLength = 1024;
 
         const inlineKeyboard = {
@@ -63,14 +63,17 @@ export async function sendTelegramMessage(title: string, content: string, images
                 ]
             ]
         };
+
+        console.log("Sending Telegram message with post:", title);
         // Use sendPhoto to include an image with a truncated caption
         const photoUrl = images[0].url;
         const photoPayload = {
             chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
             photo: photoUrl,
+            text: "Generated Post Image",
             caption: `Title: ${title}\n\n🚀 Full post content is below`,
             parse_mode: "Markdown",
-            reply_markup: inlineKeyboard
+            reply_markup: inlineKeyboard,
         };
 
         // Send the image first
@@ -80,7 +83,7 @@ export async function sendTelegramMessage(title: string, content: string, images
         // Send full content separately as a text message
         if (text.length > maxCaptionLength) {
             const textPayload = {
-                chat_id: RECEIVER_TELEGRAM_CHAT_ID,
+                chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
                 text: `📌 *Full Post Idea:*\n\n${content}`,
                 parse_mode: "Markdown",
 
@@ -91,6 +94,8 @@ export async function sendTelegramMessage(title: string, content: string, images
 
     } catch (error) {
         console.error("Error sending Telegram message:", error);
+        // Retry sending the message
+        return await sendTelegramMessage(title, content, images, postId, chatId);
     }
 }
 
@@ -117,7 +122,7 @@ export async function processTelegramResponse(message: any) {
         }
 
         // Generate post
-        if (responseText.toLowerCase().trim().startsWith("/generate")) {
+        if (responseText.toLowerCase().trim() === "/generate") {
             // Example: /generate --prompt=Generate a post about the future of AI
             console.log("Generating post...");
             const prompt = responseText.split("--prompt=")[1];
