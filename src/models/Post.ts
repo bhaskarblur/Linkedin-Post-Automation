@@ -24,7 +24,7 @@ export interface IPost extends Document {
     content: string;
     imagePrompt: string;
     generatedImages: IImage[];
-    status: 'pending' | 'accepted' | 'rejected' | 'scheduled';
+    status: 'pending' | 'accepted' | 'rejected' | 'scheduled' | 'posted';
     postTime?: Date;
     createdAt: Date;
     feedbackTopic?: 'idea' | 'content' | 'image';

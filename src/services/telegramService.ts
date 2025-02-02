@@ -303,9 +303,27 @@ export async function processTelegramResponse(message: any) {
                     text: WaitMessage,
                     parse_mode: undefined,
                 });
+                const post = await Post.findById(postId);
+                if (!post) {
+                    await axios.post(url, {
+                        chat_id: message.from,
+                        text: `Post Id: ${postId} not found.`,
+                        parse_mode: undefined,
+                    });
+                    return;
+                }
+                if (post.status === "scheduled" || post.status === "posted") {
+                    await axios.post(url, {
+                        chat_id: message.from,
+                        text: `Post Id: ${postId} already scheduled or posted.`,
+                        parse_mode: undefined,
+                    });
+                    return;
+                }
                 const success = await handlePostTimeInput(postId, time, accesstoken, useMedia);
                 if (!success) {
                     await failedToSchedulePostMessage();
+                    return;
                 }
                 await axios.post(url, {
                     chat_id: message.from,

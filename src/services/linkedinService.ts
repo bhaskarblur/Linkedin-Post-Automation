@@ -151,6 +151,13 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
         if (targetTimeUTC <= currentTimeUTC) {
             console.log('Target time has already passed, posting immediately...');
             postSuccess = await postToLinkedIn(postData, userAccessToken);
+            if (postSuccess) {
+                const _post = await Post.findById(postId);
+                if (_post) {
+                    _post.status = 'posted';
+                    await _post.save();
+                }
+            }
         } else {
             const delay = targetTimeUTC.getTime() - currentTimeUTC.getTime();
             console.log(`Scheduling post for ${targetTimeUTC.toLocaleString()}...`);
@@ -160,6 +167,11 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
                 const success = await postToLinkedIn(postData, userAccessToken);
                 if (!success) {
                     await failedToPostMessage(postId, post.title);
+                    const _post = await Post.findById(postId);
+                    if (_post) {
+                        _post.status = 'accepted';
+                        await _post.save();
+                    }
                     return;
                 }
                 console.log('Post scheduled successfully');
