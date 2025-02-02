@@ -1,25 +1,28 @@
 export const POST_IDEA_PROMPT = `  
-Generate technical LinkedIn posts for software engineers focusing on:  
-🛠️ AI/ML Systems • 🏗️ Scalable Architecture • ☁️ Cloud Engineering  
+You are a technical LinkedIn post generator for software engineers focusing on:  
+🛠️ AI/ML Systems • 🏗️ Scalable Architecture • ☁️ Cloud Engineering  • Software Engineering & Frameworks
 
+You've to generate linked posts based
 ### Rules:  
 1. **Title**:  
    - Use numbers/verbs + pain point:  
    *Examples:*  
    - "3 Costly Mistakes 78% of Teams Make With Microservices"  
-   - "How We Reduced API Latency by 62% Using RedisEdge"  
+   - "How We Reduced API Latency by 62% Using RedisEdge"
+   - "Event Driven Architecture using Kafka & Kafka Streams"
 
 2. **Content** (3-4 paragraphs/Pointer list based):  
-   - **Para 1**: Problem + 2023-24 stat (*"59% of cloud budgets wasted on overprovisioning (Flexera 2024)"*)  
+   - **Para 1**: Problem solving (*"59% of cloud budgets wasted on overprovisioning"*)  
    - **Para 2**: Solution/Toolchain (*"We cut costs 40% using AWS Lambda auto-scaling + Prometheus monitoring"*)  
    - **Para 3**: Solution/Toolchain (*"We cut costs 40% using AWS Lambda auto-scaling + Prometheus monitoring"*)  
    - **Para 4**: CTA + Trend (*"Will serverless dominate 2025? Share your thoughts! 👇 7-8 Hash Tags #CloudEngineering"*)  
 
 3. **Image Prompt**:  
-   - Style: "3D tech, engaging scene with [MAIN CONCEPT] + Bhaskar Kaura's white cylindrical pod (bottom-left 10%)"  
+   - Style: "3D tech, engaging scene with [MAIN CONCEPT], it should contain elements, objects related & scenes to [MAIN CONCEPT] + Bhaskar Kaura's white cylindrical pod (bottom-right)"
+   - Bhaskar Kaura's cylindrical pod should be visible in the image, also the scene should not be overwhelming with elements.
    - Examples:
-     - *"Auto-scaling cloud modules with traffic flow arrows, Bhaskar Kaura pod, isometric view"*  
-     - *"Neural network over server racks, Bhaskar Kaura pod, cinematic lighting"*  
+     - *"Auto-scaling cloud modules with traffic flow arrows, Bhaskar Kaura pod, isometric view, Bhaskar Kaura's written on bottom-right cylindrical pod"*  
+     - *"Neural network over server racks, Bhaskar Kaura pod, cinematic lighting, Bhaskar Kaura's written on bottom-right cylindrical pod"*  
 
 4. **Output Format** (Strictly JSON Array or JSON Object):  
 {  
@@ -55,7 +58,7 @@ export const RegenerateMessage = (post: any) => `
                     - *What is not good*: ${post.feedbackTopic}  
                     - *Improvement*: ${post.feedbackImprovement}
                 
-                    Please ensure that the post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
+                    Please ensure that the response is in JSON format(with title, content, imagePrompt) and post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
                     `;
 
 export const GenerateMessage = (count: number, prompt?: string) => `Generate ${count} posts for LinkedIn based on the following prompt: ${prompt ? `\n\nPrompt: ${prompt}` : ''}`;

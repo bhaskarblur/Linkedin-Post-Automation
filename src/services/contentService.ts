@@ -68,17 +68,16 @@ export async function generatePostWithFeedback(post: IPost): Promise<PostIdea | 
                 { role: 'user', content: 'Generate a post idea for LinkedIn.' },
                 {
                     role: 'assistant', content:
-                        `title: ${post.title}
-                    content: ${post.content}
-                    imagePrompt: ${post.imagePrompt},
-                    `
+                        `{title: ${post.title},
+                    content: ${post.content},
+                    imagePrompt: ${post.imagePrompt}}`
                 },
                 {
                     role: 'user',
                     content: RegenerateMessage(post)
                 }
             ],
-            max_tokens: 3600, // Adjust based on API limits
+            max_tokens: 9600, // Adjust based on API limits
             temperature: 0.7, // Controls creativity
             n: 1, // Number of completions to generate
         });

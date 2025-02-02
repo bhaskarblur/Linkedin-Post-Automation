@@ -43,6 +43,7 @@ export async function invokePostCreationWithFeedback(postId: string, chatId?: st
             throw new Error('Post not found');
         }
         const newPost = await generatePostWithFeedback(postDetails);
+        console.log("New Post:", newPost);
         if (newPost) {
             if (postDetails.feedbackTopic == 'image' || postDetails.feedbackTopic == 'idea') {
                 console.log('Generating Images...');
