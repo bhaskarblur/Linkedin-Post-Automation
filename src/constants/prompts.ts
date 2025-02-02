@@ -39,7 +39,7 @@ export const WaitMessage = `Please wait while we schedule the post...`;
 
 export const PostScheduledMessage = (postId: string) => `Post ${postId} scheduled successfully!`;
 
-export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type\n'/generate'(use --prompt= to generate a post with a specific prompt)\n\n2. To upload a post to LinkedIn type\n'/upload --postid=12345 --time=14:00 --accesstoken=YOUR_LINKEDIN_ACCESS_TOKEN'.\n\n3. To upload without image, use --no-media flag' \n\n4. To edit a post, use /edit --postid=12345 --title=New Title --content=New Content";
+export const InvalidInputMessage = "Invalid input. Please try again.\n\nCommands:\n1. To generate a LinkedIn post type\n'/generate'(use --prompt= to generate a post with a specific prompt)\n\n2. To upload a post to LinkedIn type\n'/upload --postid=12345 --time=14:00 --accesstoken=YOUR_LINKEDIN_ACCESS_TOKEN'.\n\n3. To upload without image, use --no-media flag' \n\n4. To edit a post, type:\n/edit --postid=12345 --title=New Title --content=New Content";
 
 export const AcceptMessage = (postId: string) => `You've accepted this post.\n\nTo upload it to LinkedIn, please provide the time you'd like to schedule the post (e.g., 14:30 for 2:30 PM).\nYou would also need to provide your LinkedIn access token.\n\nCopy & Follow the format to upload the post:\n/upload --postid=${postId} --time=HH:MM --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN.\n\nIf you want to upload the post without image, use --no-media flag.`;
 
