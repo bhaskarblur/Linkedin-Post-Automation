@@ -375,11 +375,9 @@ export async function processTelegramResponse(message: any) {
                 text: RejectMessage(postId),
                 reply_markup: JSON.stringify({
                     inline_keyboard: [
-                        [
-                            post?.generatedImages?.length && post.generatedImages.length > 0 ? { text: "Image", callback_data: `FEEDBACK_${postId}_image` } : null,
-                            { text: "Content idea", callback_data: `FEEDBACK_${postId}_idea` },
-                            { text: "Post content", callback_data: `FEEDBACK_${postId}_content` }
-                        ],
+                        ...(post?.generatedImages?.length && post.generatedImages.length > 0 ? [{ text: "Image", callback_data: `FEEDBACK_${postId}_image` }] : []),
+                        { text: "Content idea", callback_data: `FEEDBACK_${postId}_idea` },
+                        { text: "Post content", callback_data: `FEEDBACK_${postId}_content` }
                     ]
                 })
             });
