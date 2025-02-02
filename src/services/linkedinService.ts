@@ -1,6 +1,7 @@
 import axios from 'axios';
 import curlirize from 'axios-curlirize';
 import { Post } from "../models/Post";
+import { failedToPostMessage, postSuccessMessage } from './telegramService';
 
 // Initialize axios-curlirize with your axios instance
 curlirize(axios);
@@ -84,7 +85,7 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
                 },
             };
         } else {
-
+            console.log('Uploading Post image...');
             // Step 2: Register the Image Upload with LinkedIn
             const registerUploadResponse = await registerUpload(userAccessToken, userId);
             const uploadUrl = registerUploadResponse.uploadUrl;
@@ -95,7 +96,7 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
 
             // Step 3: Upload the Image File to LinkedIn
             const imageBuffer = await fetch(post.generatedImages[0].url).then(res => res.arrayBuffer());
-            console.log('Image Buffer:', imageBuffer);
+            console.log('Generated Image Buffer:', imageBuffer);
             await axios.put(uploadUrl, imageBuffer, {
                 headers: {
                     'Content-Type': 'image/jpeg', // Change this based on your image type
@@ -104,7 +105,7 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
             });
 
 
-            // Set delay for 10 seconds
+            // Set delay for 5 seconds
             console.log('Waiting for 5 seconds before creating the post...');
             await new Promise(resolve => setTimeout(resolve, 5000));
 
@@ -140,6 +141,8 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
         // Step 6: Schedule the Post (Delay until the target time)
         const currentTime = new Date();
         const targetTime = new Date(time);
+        console.log('Current Time:', currentTime);
+        console.log('Target Time:', targetTime);
         let postSuccess = false;
         if (targetTime <= currentTime) {
             console.log('Target time has already passed, posting immediately...');
@@ -147,10 +150,16 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
         } else {
             const delay = targetTime.getTime() - currentTime.getTime();
             console.log(`Scheduling post for ${targetTime.toLocaleString()}...`);
-
+            postSuccess = true;
             // Delay the post until the scheduled time
             setTimeout(async () => {
-                postSuccess = await postToLinkedIn(postData, userAccessToken);
+                const success = await postToLinkedIn(postData, userAccessToken);
+                if (!success) {
+                    await failedToPostMessage(postId, post.title);
+                    return;
+                }
+                console.log('Post scheduled successfully');
+                await postSuccessMessage(postId, post.title);
             }, delay);
         }
 
@@ -160,7 +169,9 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
             _post.status = 'scheduled';
             await _post.save();
         }
-
+        if (postSuccess) {
+            console.log('Post scheduled successfully');
+        }
         return postSuccess;
     } catch (error: any) {
         console.error('Error scheduling LinkedIn post:', error);

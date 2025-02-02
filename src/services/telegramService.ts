@@ -27,6 +27,22 @@ export async function failedToSchedulePostMessage() {
     });
 }
 
+export async function failedToPostMessage(postId: string, title: string) {
+    await axios.post(url, {
+        chat_id: RECEIVER_TELEGRAM_CHAT_ID,
+        text: `Failed to post the scheduled post on LinkedIn.\nPost Id: ${postId}\nTitle: ${title}\nPlease retry.`,
+        parse_mode: undefined,
+    });
+}
+
+export async function postSuccessMessage(postId: string, title: string) {
+    await axios.post(url, {
+        chat_id: RECEIVER_TELEGRAM_CHAT_ID,
+        text: `Post scheduled successfully.\nPost Id: ${postId}\nTitle: ${title}\nPlease wait for the post to be posted on LinkedIn.`,
+        parse_mode: undefined,
+    });
+}
+
 export async function failedToGenerateImagesMessage(errorMessage: string, chatId?: string) {
     await axios.post(url, {
         chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
