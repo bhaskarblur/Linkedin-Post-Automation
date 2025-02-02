@@ -11,7 +11,7 @@ const RECEIVER_TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
 const url = `${TELEGRAM_API_URL}/sendMessage`;
 
 // This caters admin only access token expiry, so no chat id is required.
-export async function sendExpiredAccessTokenMessage() {
+export async function sendExpiredaccesstokenMessage() {
     await axios.post(url, {
         chat_id: RECEIVER_TELEGRAM_CHAT_ID,
         text: "Your access token has expired. Please update your access token on server.",
@@ -237,31 +237,31 @@ export async function processTelegramResponse(message: any) {
             return;
         }
 
-        // Receive manual upload message, Format: /upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
+        // Receive manual upload message, Format: /upload --postid=12345 --time=14:00 --accesstoken=YOUR_LINKEDIN_ACCESS_TOKEN
         if (responseText.toLowerCase().trim().startsWith("/upload")) {
-            // Example: /upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN --apiKey=env.API_KEY --no-media
-            // --apiKey is optional, it can be used if --accessToken is not provided
+            // Example: /upload --postid=12345 --time=14:00 --accesstoken=YOUR_LINKEDIN_ACCESS_TOKEN --apikey=env.API_KEY --no-media
+            // --apiKey is optional, it can be used if --accesstoken is not provided
             console.log("Received upload message: ", responseText);
 
             // Extract values using regex
             const postIdMatch = responseText.match(/--postid=([a-fA-F0-9]{24})/);
             const timeMatch = responseText.match(/--time=(\S+)/);
-            const accessTokenMatch = responseText.match(/--accessToken=(\S+)/);
-            const apiKeyMatch = responseText.match(/--apikey=(\S+)/); // Use both for accessToken and apiKey
+            const accesstokenMatch = responseText.match(/--accesstoken=(\S+)/);
+            const apiKeyMatch = responseText.match(/--apikey=(\S+)/); // Use both for accesstoken and apikey
             const noMedia = responseText.includes("--no-media");
 
             // Set values based on the matches
             const postId = postIdMatch ? postIdMatch[1] : null;
             const time = timeMatch ? timeMatch[1] : null;
-            let accessToken = accessTokenMatch ? accessTokenMatch[1] : null;
+            let accesstoken = accesstokenMatch ? accesstokenMatch[1] : null;
             const apiKey = apiKeyMatch ? apiKeyMatch[1] : null;
 
             // Set useMedia based on the presence of "--no-media"
             const useMedia = !noMedia; // Invert to match logic, useMedia is true when media should be used
 
-            console.log({ postId, time, accessToken, apiKey, useMedia });
+            console.log({ postId, time, accesstoken, apiKey, useMedia });
 
-            if (!accessToken && !apiKey) {
+            if (!accesstoken && !apiKey) {
                 await axios.post(url, {
                     chat_id: message.from,
                     text: NoAccessTokenMessage,
@@ -269,8 +269,8 @@ export async function processTelegramResponse(message: any) {
                 });
                 return;
             }
-            if (!accessToken && apiKey) {
-                accessToken = apiKey;
+            if (!accesstoken && apiKey) {
+                accesstoken = apiKey;
             }
             if (!time || !postId) {
                 await axios.post(url, {
@@ -287,7 +287,7 @@ export async function processTelegramResponse(message: any) {
                     text: WaitMessage,
                     parse_mode: undefined,
                 });
-                const success = await handlePostTimeInput(postId, time, accessToken, useMedia);
+                const success = await handlePostTimeInput(postId, time, accesstoken, useMedia);
                 if (!success) {
                     await failedToSchedulePostMessage();
                 }
