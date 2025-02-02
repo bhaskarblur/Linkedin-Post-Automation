@@ -77,7 +77,7 @@ export async function sendTelegramMessage(title: string, content: string, images
         };
 
         // Send the image first
-        await axios.post(url, photoPayload);
+        await axios.post(`${TELEGRAM_API_URL}/sendPhoto`, photoPayload);
 
         console.log("Telegram post photo sent successfully.");
         // Send full content separately as a text message
