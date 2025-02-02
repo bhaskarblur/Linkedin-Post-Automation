@@ -84,7 +84,7 @@ export async function sendTelegramMessage(title: string, content: string, images
         if (text.length > maxCaptionLength) {
             const textPayload = {
                 chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
-                text: `📌 *Full Post Idea:*\n\n${content}`,
+                text: `📌 *Full Post Idea:*\n\n${content}\n\n*Note: To edit the post, use\n/edit --postid=${postId} --title=New Title --content=New Content*`,
                 parse_mode: "Markdown",
 
             };
@@ -143,15 +143,20 @@ export async function processTelegramResponse(message: any) {
             // Example: /improve --postid=12345 --reason=image --feedback=
             // -- reason is optional, feedback is required
             console.log("Received improvement message: ", responseText);
-            let postId = responseText.split("--postid=")[1]?.trim();
-            let reason = responseText.split("--reason=")[1]?.split("--feedback=")[0]?.trim();
-            if (reason === undefined) {
-                postId = responseText.split("--postid=")[1]?.split("--feedback=")[0]?.trim();
-                reason = "image";
-            }
-            let improvementMessage = responseText.split("--feedback=")[1]; // <improvement message>
-            console.log("Improvement message received for post(postId, reason, improvementMessage):", postId, reason, improvementMessage);
-            if (!improvementMessage || !postId) {
+
+            // Extract postId
+            const postIdMatch = responseText.match(/--postid=(\d+)/);
+            const postId = postIdMatch ? postIdMatch[1] : null;
+
+            // Extract reason (optional)
+            const reasonMatch = responseText.match(/--reason=([\w-]+)/);
+            const reason = reasonMatch ? reasonMatch[1] : null;
+
+            // Extract feedback (required)
+            const feedbackMatch = responseText.match(/--feedback=(.+)/);
+            const improvementMessage = feedbackMatch ? feedbackMatch[1].trim() : null;
+
+            if (!postId || !improvementMessage) {
                 console.error("Improvement message is empty.");
                 await axios.post(url, {
                     chat_id: message.from,
@@ -168,28 +173,86 @@ export async function processTelegramResponse(message: any) {
             const post = await Post.findById(postId);
             if (post) {
                 post.feedbackImprovement = improvementMessage;
-                post.feedbackTopic = reason;
+                if (reason) {
+                    post.feedbackTopic = reason;
+                }
                 await post.save();
             }
             await invokePostCreationWithFeedback(postId, message.from);
             return;
         }
 
+        // Editing a post
+        if (responseText.toLowerCase().trim().startsWith("/edit")) {
+            // Example: /edit --postid=12345 --title=New Title --content=New Content is here...
+            // --title and --content are optional, so we need to check if they are present
+
+            // Regex to capture parameters dynamically
+            const postIdMatch = responseText.match(/--postid=(\S+)/);
+            const titleMatch = responseText.match(/--title=([^\n\r-]+)/);
+            const contentMatch = responseText.match(/--content=(.+)/);
+
+            const postId = postIdMatch ? postIdMatch[1].trim() : null;
+            const title = titleMatch ? titleMatch[1].trim() : null;
+            const content = contentMatch ? contentMatch[1].trim() : null;
+
+            console.log({ postId, title, content });
+            if (!postId) {
+                await axios.post(url, {
+                    chat_id: message.from,
+                    text: "Please provide a valid postId.",
+                    parse_mode: undefined,
+                });
+                return;
+            }
+            if (!title && !content) {
+                await axios.post(url, {
+                    chat_id: message.from,
+                    text: "Please provide atleast one valid title or content.",
+                    parse_mode: undefined,
+                });
+                return;
+            }
+            await axios.post(url, {
+                chat_id: message.from,
+                text: "Editing post...",
+                parse_mode: undefined,
+            });
+            const post = await Post.findById(postId);
+            if (post) {
+                if (title) {
+                    post.title = title;
+                }
+                if (content) {
+                    post.content = content;
+                }
+                await post.save();
+                await axios.post(url, {
+                    chat_id: message.from,
+                    text: "Post edited successfully! Below is the updated post:",
+                    parse_mode: undefined,
+                });
+                await sendTelegramMessage(post.title, post.content, post.generatedImages, post.id, message.from);
+            }
+        }
+
         // Receive manual upload message, Format: upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
         if (responseText.toLowerCase().trim().startsWith("/upload")) {
             // Example: /upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN --apiKey=YOUR_FLUX_API_KEY --no-media
-            const postId = responseText.split("--postid=")[1].split("--time=")[0];
-            const time = responseText.split("--time=")[1].split("--accessToken=")[0];
-            let accessToken = responseText.split("--accessToken=")[1].split("--no-media")[0];
-            let apiKey = '';
-            let useMedia = true;
-            if (responseText.includes("--no-media")) {
-                useMedia = false;
-                accessToken = accessToken.replace("--no-media", "");
-            }
-            if (responseText.includes("--apiKey=")) {
-                apiKey = responseText.split("--apiKey=")[1].split("--no-media")[0];
-            }
+            const postIdMatch = responseText.match(/--postid=(\S+)/);
+            const timeMatch = responseText.match(/--time=(\S+)/);
+            const accessTokenMatch = responseText.match(/--accessToken=(\S+)/);
+            const apiKeyMatch = responseText.match(/--apiKey=(\S+)/);
+            const noMedia = responseText.includes("--no-media");
+
+            const postId = postIdMatch ? postIdMatch[1] : null;
+            const time = timeMatch ? timeMatch[1] : null;
+            let accessToken = accessTokenMatch ? accessTokenMatch[1] : null;
+            const apiKey = apiKeyMatch ? apiKeyMatch[1] : null;
+            const useMedia = !noMedia; // Invert to match logic
+
+            console.log({ postId, time, accessToken, apiKey, useMedia });
+
             if (!accessToken && !apiKey) {
                 await axios.post(url, {
                     chat_id: message.from,

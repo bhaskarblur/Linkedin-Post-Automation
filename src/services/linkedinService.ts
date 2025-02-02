@@ -74,7 +74,7 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
                 specificContent: {
                     'com.linkedin.ugc.ShareContent': {
                         shareCommentary: {
-                            text: post.content, // The text content of the post
+                            text: `${post.title}\n\n${post.content}`,
                         },
                         shareMediaCategory: 'NONE', // Indicates no media is attached
                     },
@@ -114,7 +114,7 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
                 specificContent: {
                     'com.linkedin.ugc.ShareContent': {
                         shareCommentary: {
-                            text: post.content,
+                            text: `${post.title}\n\n${post.content}`,
                         },
                         shareMediaCategory: 'IMAGE',
                         media: [
