@@ -167,14 +167,14 @@ export async function processTelegramResponse(message: any) {
             }
             await axios.post(url, {
                 chat_id: message.from,
-                text: `Thank you! We're regenerating the post with your feedback.\nPlease wait while we regenerate the post.`,
+                text: `Thank you! We're applying the changes to the post.\nPlease wait while we apply the changes to the post.`,
                 parse_mode: "Markdown",
             });
             const post = await Post.findById(postId);
             if (post) {
                 post.feedbackImprovement = improvementMessage;
                 if (reason && reason.trim() !== "") {
-                    post.feedbackTopic = reason;
+                    post.feedbackTopic = reason.trim();
                 }
                 await post.save();
             }
@@ -237,20 +237,27 @@ export async function processTelegramResponse(message: any) {
             return;
         }
 
-        // Receive manual upload message, Format: upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
+        // Receive manual upload message, Format: /upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN
         if (responseText.toLowerCase().trim().startsWith("/upload")) {
-            // Example: /upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN --apiKey=YOUR_FLUX_API_KEY --no-media
+            // Example: /upload --postid=12345 --time=14:00 --accessToken=YOUR_LINKEDIN_ACCESS_TOKEN --apiKey=env.API_KEY --no-media
+            // --apiKey is optional, it can be used if --accessToken is not provided
+            console.log("Received upload message: ", responseText);
+
+            // Extract values using regex
             const postIdMatch = responseText.match(/--postid=([a-fA-F0-9]{24})/);
             const timeMatch = responseText.match(/--time=(\S+)/);
             const accessTokenMatch = responseText.match(/--accessToken=(\S+)/);
             const apiKeyMatch = responseText.match(/--apiKey=(\S+)/);
             const noMedia = responseText.includes("--no-media");
 
+            // Set values based on the matches
             const postId = postIdMatch ? postIdMatch[1] : null;
             const time = timeMatch ? timeMatch[1] : null;
             let accessToken = accessTokenMatch ? accessTokenMatch[1] : null;
             const apiKey = apiKeyMatch ? apiKeyMatch[1] : null;
-            const useMedia = !noMedia; // Invert to match logic
+
+            // Set useMedia based on the presence of "--no-media"
+            const useMedia = !noMedia; // Invert to match logic, useMedia is true when media should be used
 
             console.log({ postId, time, accessToken, apiKey, useMedia });
 
