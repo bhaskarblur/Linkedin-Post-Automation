@@ -8,7 +8,8 @@ import { generateImages } from './services/imageService';
 import { savePost } from './services/postService';
 import { failedToGenerateImagesMessage, failedToGeneratePostWithFeedbackMessage, processTelegramResponse, sendTelegramMessage } from './services/telegramService';
 
-cron.schedule('0 0 * * *', async () => {
+// Runs CRON at 1:00 am IST mid night
+cron.schedule('30 19 * * *', async () => {
     console.log('CRON: Running LinkedIn Automation Bot...');
     invokePostCreation(2);
 });
