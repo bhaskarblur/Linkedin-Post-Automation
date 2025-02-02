@@ -122,7 +122,7 @@ export async function processTelegramResponse(message: any) {
         }
 
         // Generate post
-        if (responseText.toLowerCase().trim() === "/generate") {
+        if (responseText.toLowerCase().trim().startsWith("/generate")) {
             // Example: /generate --prompt=Generate a post about the future of AI
             console.log("Generating post...");
             const prompt = responseText.split("--prompt=")[1];
@@ -133,7 +133,7 @@ export async function processTelegramResponse(message: any) {
             const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
-                text: "Qurating a LinkedIn post for you!",
+                text: "Generating a LinkedIn post for you! Please wait...",
                 parse_mode: undefined,
             });
             await invokePostCreation(1, prompt, message.from); // Create 1 post
