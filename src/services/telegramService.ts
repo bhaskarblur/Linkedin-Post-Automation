@@ -173,7 +173,7 @@ export async function processTelegramResponse(message: any) {
             const post = await Post.findById(postId);
             if (post) {
                 post.feedbackImprovement = improvementMessage;
-                if (reason) {
+                if (reason && reason.trim() !== "") {
                     post.feedbackTopic = reason;
                 }
                 await post.save();
