@@ -58,7 +58,7 @@ export const RegenerateMessage = (post: any) => `
                     - *What is not good*: ${post.feedbackTopic}  
                     - *Improvement*: ${post.feedbackImprovement}
                 
-                    Please ensure that the response is in JSON format(with title, content, imagePrompt) and post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
+                    Please ensure that the response should strictly be in JSON format(with title, content, imagePrompt) and post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
                     `;
 
 export const GenerateMessage = (count: number, prompt?: string) => `Generate ${count} posts for LinkedIn based on the following prompt: ${prompt ? `\n\nPrompt: ${prompt}` : ''}`;
