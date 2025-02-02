@@ -247,7 +247,7 @@ export async function processTelegramResponse(message: any) {
             const postIdMatch = responseText.match(/--postid=([a-fA-F0-9]{24})/);
             const timeMatch = responseText.match(/--time=(\S+)/);
             const accessTokenMatch = responseText.match(/--accessToken=(\S+)/);
-            const apiKeyMatch = responseText.match(/--apiKey=(\S+)/);
+            const apiKeyMatch = responseText.match(/--apikey=(\S+)/); // Use both for accessToken and apiKey
             const noMedia = responseText.includes("--no-media");
 
             // Set values based on the matches
