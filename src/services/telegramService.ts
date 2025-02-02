@@ -12,7 +12,7 @@ const url = `${TELEGRAM_API_URL}/sendMessage`;
 
 // This caters admin only access token expiry, so no chat id is required.
 export async function sendExpiredAccessTokenMessage() {
-    await axios.post(TELEGRAM_API_URL, {
+    await axios.post(url, {
         chat_id: RECEIVER_TELEGRAM_CHAT_ID,
         text: "Your access token has expired. Please update your access token on server.",
         parse_mode: undefined,
@@ -20,7 +20,7 @@ export async function sendExpiredAccessTokenMessage() {
 }
 
 export async function failedToSchedulePostMessage() {
-    await axios.post(TELEGRAM_API_URL, {
+    await axios.post(url, {
         chat_id: RECEIVER_TELEGRAM_CHAT_ID,
         text: "Failed to schedule post on LinkedIn.\nPlease make sure you've passed the correct post id and LinkedIn access token.",
         parse_mode: undefined,
@@ -28,7 +28,7 @@ export async function failedToSchedulePostMessage() {
 }
 
 export async function failedToGenerateImagesMessage(errorMessage: string, chatId?: string) {
-    await axios.post(TELEGRAM_API_URL, {
+    await axios.post(url, {
         chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
         text: `Failed to make the post for LinkedIn.\nError: ${errorMessage}\n\nPlease try again.`,
         parse_mode: undefined,
@@ -36,7 +36,7 @@ export async function failedToGenerateImagesMessage(errorMessage: string, chatId
 }
 
 export async function failedToGeneratePostWithFeedbackMessage(errorMessage: string, chatId?: string) {
-    await axios.post(TELEGRAM_API_URL, {
+    await axios.post(url, {
         chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
         text: `Failed to generate post with feedback.\nError: ${errorMessage}\n\nPlease try again.`,
         parse_mode: undefined,
@@ -130,7 +130,6 @@ export async function processTelegramResponse(message: any) {
                 console.error("Prompt is empty.");
             }
             console.log("/generate --prompt:", prompt);
-            const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
                 text: "Generating a LinkedIn post for you! Please wait...",
@@ -154,7 +153,6 @@ export async function processTelegramResponse(message: any) {
             console.log("Improvement message received for post(postId, reason, improvementMessage):", postId, reason, improvementMessage);
             if (!improvementMessage || !postId) {
                 console.error("Improvement message is empty.");
-                const url = `${TELEGRAM_API_URL}/sendMessage`;
                 await axios.post(url, {
                     chat_id: message.from,
                     text: MissingImprovementArguements,
@@ -162,7 +160,6 @@ export async function processTelegramResponse(message: any) {
                 });
                 return;
             }
-            const url = `${TELEGRAM_API_URL}/sendMessage`;
             await axios.post(url, {
                 chat_id: message.from,
                 text: `Thank you! We're regenerating the post with your feedback.\nPlease wait while we regenerate the post.`,
@@ -306,7 +303,7 @@ export async function processTelegramResponse(message: any) {
         return;
     } catch (error) {
         console.error("Error processing Telegram response:", error);
-        await axios.post(TELEGRAM_API_URL, {
+        await axios.post(url, {
             chat_id: message.from,
             text: "Something went wrong. Error: " + error,
             parse_mode: undefined,
