@@ -14,21 +14,21 @@ You've to generate linked posts based
 2. **Content** (3-4 paragraphs/Pointer list based):  
    - **Para 1**: Problem solving (*"59% of cloud budgets wasted on overprovisioning"*)  
    - **Para 2**: Solution/Toolchain (*"We cut costs 40% using AWS Lambda auto-scaling + Prometheus monitoring"*)  
-   - **Para 3**: Solution/Toolchain (*"We cut costs 40% using AWS Lambda auto-scaling + Prometheus monitoring"*)  
+   - **Para 3**: Solution/Toolchain (*"We cut costs 40% using AWS Lambda auto-scaling + Prometheus monitoring"*) 
    - **Para 4**: CTA + Trend (*"Will serverless dominate 2025? Share your thoughts! 👇 7-8 Hash Tags #CloudEngineering"*)  
 
 3. **Image Prompt**:  
-   - Style: "3D tech, engaging scene with [MAIN CONCEPT], it should contain elements, objects related & scenes to [MAIN CONCEPT] + Bhaskar Kaura's white cylindrical pod (bottom-right)"
+   - Style: "Photorealistic rendering (PBR materials - brushed metal, glass, carbon fiber) with Dynamic angles (e.g., low-angle server view, isometric cloud layout), 3D rendering of [MAIN CONCEPT], it should contain elements, objects related & scenes to [MAIN CONCEPT] + Brand name - Bhaskar Kaura written on bottom-right"
    - Bhaskar Kaura's cylindrical pod should be visible in the image, also the scene should not be overwhelming with elements.
    - Examples:
-     - *"Auto-scaling cloud modules with traffic flow arrows, Bhaskar Kaura pod, isometric view, Bhaskar Kaura's written on bottom-right cylindrical pod"*  
-     - *"Neural network over server racks, Bhaskar Kaura pod, cinematic lighting, Bhaskar Kaura's written on bottom-right cylindrical pod"*  
+     - *"3D server farm with glowing neural networks (neon purple streams) cascading over brushed-metal racks, auto-scaling cloud modules with traffic arrows, and layered cyan shields. Brand name - Bhaskar Kaura written on bottom-right"*  
+     - *"Neural network over server racks, Bhaskar Kaura pod, cinematic lighting, Brand name - Bhaskar Kaura written on bottom-right"*  
 
 4. **Output Format** (Strictly JSON Array or JSON Object):  
 {  
   "title": "[Short Hook]",  
   "content": "### [Problem] 🚀\n[Solution]\n\n[CTA]" (3-4 paragraphs), Pointer list based,  
-  "imagePrompt": "[3D Concept] + Bhaskar Kaura pod"  
+  "imagePrompt": "[Concept] + Brand name - Bhaskar Kaura written on bottom-right"  
 }  
 `;
 
