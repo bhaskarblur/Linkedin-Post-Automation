@@ -417,10 +417,13 @@ export async function processTelegramResponse(message: any) {
         return;
     } catch (error) {
         console.error("Error processing Telegram response for chatId:", message.from, error);
-        await axios.post(url, {
-            chat_id: message.from,
-            text: "Something went wrong. Error: " + error,
-            parse_mode: undefined,
-        });
+        setTimeout(() => {
+            axios.post(url, {
+                chat_id: message.from,
+                text: "Something went wrong. Error: " + error,
+                parse_mode: undefined,
+            });
+        }, 1000);
+        return;
     }
 }
