@@ -19,7 +19,7 @@ export async function generateImages(prompt: string, numImages: number = 1): Pro
     try {
         console.log('Generating images for prompt:', prompt);
         // Call the FLUX.1 [dev] model endpoint for text-to-image generation
-        const result = await fal.subscribe('fal-ai/flux/dev', {
+        const result = await fal.subscribe(process.env.FAL_AI_IMAGE_MODEL || 'fal-ai/flux/dev', {
             input: {
                 prompt: prompt,
                 num_images: numImages,
