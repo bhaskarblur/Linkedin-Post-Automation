@@ -27,8 +27,8 @@ export async function generateImages(prompt: string, numImages: number = 1): Pro
                     width: 1080,
                     height: 1080,
                 },
-                guidance_scale: 7.5,   // Controls how closely the image matches the prompt
-                num_inference_steps: 40, // Number of denoising steps
+                guidance_scale: process.env.FAL_AI_IMAGE_GUIDANCE_SCALE || 7.5,   // Controls how closely the image matches the prompt
+                num_inference_steps: process.env.FAL_AI_IMAGE_NUM_INFERENCE_STEPS || 40, // Number of denoising steps
             },
         });
 
