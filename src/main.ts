@@ -11,7 +11,7 @@ import { failedToGenerateImagesMessage, failedToGeneratePostWithFeedbackMessage,
 // Runs CRON at 1:00 am IST mid night
 cron.schedule('30 19 * * *', async () => {
     console.log('CRON: Running LinkedIn Automation Bot...');
-    invokePostCreation(2);
+    invokePostCreation(Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
 });
 
 const app = express();
