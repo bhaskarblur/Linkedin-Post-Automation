@@ -127,7 +127,7 @@ export async function sendTelegramMessage(title: string, content: string, images
  */
 export async function processTelegramResponse(message: any) {
     try {
-        const responseText = message.body.toLowerCase();
+        const responseText = message.body?.toLowerCase();
         console.log("Processing Telegram response for responseText:", responseText);
         let postId = null;
 
@@ -140,7 +140,7 @@ export async function processTelegramResponse(message: any) {
         }
 
         // Generate post
-        if (responseText.toLowerCase().trim().startsWith("/generate")) {
+        if (responseText?.toLowerCase().trim().startsWith("/generate")) {
             // Example: /generate --no-media --prompt=Generate a post about the future of AI
             // --no-media is optional, it can be used if you don't want to generate an image
             const prompt = responseText.split("--prompt=")[1];
@@ -159,7 +159,7 @@ export async function processTelegramResponse(message: any) {
             return;
         }
         // Receive improvement message
-        if (responseText.toLowerCase().trim().startsWith("/improve")) {
+        if (responseText?.toLowerCase().trim().startsWith("/improve")) {
             // Example: /improve --postid=12345 --reason=image --feedback=
             // -- reason is optional, feedback is required
             console.log("Received improvement message: ", responseText);
@@ -203,7 +203,7 @@ export async function processTelegramResponse(message: any) {
         }
 
         // Editing a post
-        if (responseText.toLowerCase().trim().startsWith("/edit")) {
+        if (responseText?.toLowerCase().trim().startsWith("/edit")) {
             // Example: /edit --postid=12345 --title=New Title --content=New Content is here...
             // --title and --content are optional, so we need to check if they are present
 
@@ -258,7 +258,7 @@ export async function processTelegramResponse(message: any) {
         }
 
         // Receive manual upload message, Format: /upload --postid=12345 --time=14:00 --accesstoken=YOUR_LINKEDIN_ACCESS_TOKEN
-        if (responseText.toLowerCase().trim().startsWith("/upload")) {
+        if (responseText?.toLowerCase().trim().startsWith("/upload")) {
             // Example: /upload --postid=12345 --time=14:00 --accesstoken=YOUR_LINKEDIN_ACCESS_TOKEN --apikey=env.API_KEY --no-media
             // --apiKey is optional, it can be used if --accesstoken is not provided
             console.log("Received upload message: ", responseText);
@@ -416,7 +416,7 @@ export async function processTelegramResponse(message: any) {
 
         return;
     } catch (error) {
-        console.error("Error processing Telegram response:", error);
+        console.error("Error processing Telegram response for chatId:", message.from, error);
         await axios.post(url, {
             chat_id: message.from,
             text: "Something went wrong. Error: " + error,
