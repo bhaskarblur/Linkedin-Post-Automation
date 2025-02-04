@@ -25,10 +25,12 @@ interface LinkedInUploadResponse {
 export async function handlePostTimeInput(postId: string, time: string, linkedinAccessToken?: string, uploadMedia: boolean = true): Promise<boolean> {
     try {
         // Parse the time (e.g., 14:30 for 2:30 PM)
+        // Current UTC time
         const postTime = new Date();
         const [hours, minutes] = time.split(':');
         postTime.setHours(Number(hours), Number(minutes), 0, 0); // Set the time
 
+        console.log('handlePostTimeInput: Post Time:', postTime);
         // Update the post with the selected time
         const post = await Post.findById(postId);
         if (post) {
@@ -36,8 +38,8 @@ export async function handlePostTimeInput(postId: string, time: string, linkedin
             post.status = 'accepted'; // Update status to accepted
             await post.save();
 
-            // Now schedule the post on LinkedIn
-            return await scheduleLinkedInPost(post, postTime, postId, linkedinAccessToken);
+            // Now schedule the post on LinkedIn3
+            return await scheduleLinkedInPost(post, postTime, postId, linkedinAccessToken, uploadMedia);
         }
         return false;
     } catch (error) {
@@ -139,14 +141,13 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
         }
 
         // Step 6: Schedule the Post (Delay until the target time)
-        // Convert input time (assumed to be in IST) to UTC
-        const targetTimeIST = new Date(time); // Assuming 'time' is in IST
-        const targetTimeUTC = new Date(targetTimeIST.getTime() - (5.5 * 60 * 60 * 1000)); // Convert IST to UTC
+        // Input time is in UTC
+        const targetTimeUTC = time;
 
         const currentTimeUTC = new Date(); // Current UTC time
 
-        console.log('Current Time (UTC):', currentTimeUTC);
-        console.log('Target Time (UTC):', targetTimeUTC);
+        console.log('scheduleLinkedInPost: Current Time (UTC):', currentTimeUTC);
+        console.log('scheduleLinkedInPost: Target Time (UTC):', targetTimeUTC);
         let postSuccess = false;
         if (targetTimeUTC <= currentTimeUTC) {
             console.log('Target time has already passed, posting immediately...');
