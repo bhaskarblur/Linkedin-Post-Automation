@@ -132,8 +132,8 @@ export async function processTelegramResponse(message: any) {
     try {
         const responseText = message.body?.toLowerCase();
         console.log("Processing Telegram response for responseText:", responseText);
-        let postId = null;
 
+        let postId = null;
         // Extract postId from payload if available (for button clicks)
         if (message.payload) {
             const parts = message.payload.split("_");
@@ -144,23 +144,43 @@ export async function processTelegramResponse(message: any) {
 
         // Generate post
         if (responseText?.toLowerCase().trim().startsWith("/generate")) {
-            // Example: /generate --no-media --prompt=Generate a post about the future of AI
-            // --no-media is optional, it can be used if you don't want to generate an image
-            const prompt = responseText.split("--prompt=")[1];
-            const noMedia = responseText.includes("--no-media");
+            // Normalize different hyphen types (— vs --)
+            const normalizedText = responseText.replace(/—/g, '--');
+
+            // Parse command-line style arguments
+            const args = normalizedText.match(/--\w+=?("[^"]*"|[^-\s]*)|--\w+/g) || [];
+
+            const params: { [key: string]: string | boolean } = {};
+
+            args.forEach((arg: string) => {
+                const match = arg.replace(/--/, '').match(/([^=]+)=?([\s\S]*)/);
+                if (match) {
+                    params[match[1]] = match[2] ? match[2].replace(/^"|"$/g, '') : true;
+                }
+            });
+
+            const prompt = params.prompt as string;
+            const noMedia = 'no-media' in params;
+
             console.log("Generating post...");
+
             if (!prompt) {
-                console.error("Prompt is empty.");
+                console.error("Prompt is required.");
+                return;
             }
-            console.log("/generate --prompt:", prompt);
+
+            console.log(`/generate --prompt=`, prompt);
+
             await axios.post(url, {
                 chat_id: message.from,
-                text: `Generating a LinkedIn post ${noMedia ? "without image" : ""} for you! Please wait...`,
+                text: `Generating LinkedIn post ${noMedia ? "without image" : ""}...`,
                 parse_mode: undefined,
             });
-            await invokePostCreation(1, prompt, !noMedia, message.from); // Create 1 post
+
+            await invokePostCreation(1, prompt, !noMedia, message.from);
             return;
         }
+
         // Receive improvement message
         if (responseText?.toLowerCase().trim().startsWith("/improve")) {
             // Example: /improve --postid=12345 --reason=image --feedback=
