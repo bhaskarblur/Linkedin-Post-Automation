@@ -144,19 +144,17 @@ export async function processTelegramResponse(message: any) {
 
         // Generate post
         if (responseText?.toLowerCase().trim().startsWith("/generate")) {
-            // Normalize different hyphen types (— vs --)
             const normalizedText = responseText.replace(/—/g, '--');
-
-            // Parse command-line style arguments
-            const args = normalizedText.match(/--\w+=?("[^"]*"|[^-\s]*)|--\w+/g) || [];
+            const args = normalizedText.match(/--[\w-]+(=("[^"]*"|[^\s]+))?|--[\w-]+/g) || [];
 
             const params: { [key: string]: string | boolean } = {};
 
             args.forEach((arg: string) => {
-                const match = arg.replace(/--/, '').match(/([^=]+)=?([\s\S]*)/);
-                if (match) {
-                    params[match[1]] = match[2] ? match[2].replace(/^"|"$/g, '') : true;
-                }
+                const cleanArg = arg.replace(/^--+/, '');
+                const equalsIndex = cleanArg.indexOf('=');
+                const key = equalsIndex === -1 ? cleanArg : cleanArg.slice(0, equalsIndex);
+                const rawValue = equalsIndex === -1 ? '' : cleanArg.slice(equalsIndex + 1);
+                params[key] = rawValue.replace(/^"(.*)"$/, '$1').trim() || true;
             });
 
             const prompt = params.prompt as string;
@@ -169,12 +167,11 @@ export async function processTelegramResponse(message: any) {
                 return;
             }
 
-            console.log(`/generate --prompt=`, prompt);
+            console.log("Command parameters:", { prompt, noMedia });
 
             await axios.post(url, {
                 chat_id: message.from,
-                text: `Generating LinkedIn post ${noMedia ? "without image" : ""}...`,
-                parse_mode: undefined,
+                text: `Generating post: "${prompt}" ${noMedia ? "without image" : ""}`,
             });
 
             await invokePostCreation(1, prompt, !noMedia, message.from);
