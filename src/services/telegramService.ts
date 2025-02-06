@@ -99,18 +99,21 @@ export async function sendTelegramMessage(title: string, content: string, images
 
 
         // Send full content separately as a text message
-        if (text.length > maxCaptionLength) {
-            const textPayload = {
-                chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
-                text: `📌 *Full Post Idea:*\n\n${content}\n\n*Note: To edit the post, use\n/edit --postid=${postId} --title=New Title --content=New Content*`,
-                parse_mode: "Markdown",
-                reply_markup: !photoUrl ? inlineKeyboard : undefined, // If no image is sent, then set the inline keyboard to this message
+        const textPayload = {
+            chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
+            text: `📌 *Full Post Idea:*\n\n${content}`,
+            parse_mode: "Markdown",
+            reply_markup: !photoUrl ? inlineKeyboard : undefined, // If no image is sent, then set the inline keyboard to this message
 
-            };
-            await axios.post(url, textPayload);
-        }
+        };
+        await axios.post(url, textPayload);
 
-
+        await axios.post(url, {
+            chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
+            text: `*Note: To edit the post, use\n/edit --postid=${postId} --title=New Title --content=New Content*`,
+            parse_mode: "Markdown",
+            reply_markup: !photoUrl ? inlineKeyboard : undefined, // If no image is sent, then set the inline keyboard to this message
+        });
     } catch (error) {
         console.error("Error sending Telegram message:", error);
         // Retry sending the message
