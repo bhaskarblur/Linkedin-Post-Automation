@@ -1,102 +1,140 @@
 import 'dotenv/config';
 import { OpenAI } from 'openai';
-import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import { GenerateMessage, POST_IDEA_PROMPT, RegenerateMessage } from '../constants/prompts';
+import type {
+    MessageContent
+} from 'openai/resources/beta/threads/messages';
+import { GenerateMessage, RegenerateMessage } from '../constants/prompts';
 import { IPost } from '../models/Post';
-// Define the structure of a post idea
+
+// Response interfaces
 interface PostIdea {
     title: string;
     content: string;
     imagePrompt: string;
 }
 
-// Ensure the OpenAI API key is set in the environment variables
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-if (!OPENAI_API_KEY) {
-    throw new Error('Missing required environment variable: OPENAI_API_KEY');
+interface PostResponse {
+    items: PostIdea[];
 }
 
-const openai = new OpenAI({
-    apiKey: OPENAI_API_KEY,
-});
+// Environment variables
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID || '';
+const EXISTING_THREAD_ID = process.env.OPENAI_THREAD_ID || '';
 
+if (!OPENAI_API_KEY || !ASSISTANT_ID || !EXISTING_THREAD_ID) {
+    throw new Error('Missing required environment variables');
+}
 
-// Function to generate post ideas using GPT-4o
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+
+// Type guard using type narrowing
+function isTextContent(content: MessageContent): content is Extract<MessageContent, { type: 'text' }> {
+    return content.type === 'text';
+}
+
+async function waitForRunCompletion(threadId: string, runId: string) {
+    let run = await openai.beta.threads.runs.retrieve(threadId, runId);
+    while (run.status === 'queued' || run.status === 'in_progress') {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        run = await openai.beta.threads.runs.retrieve(threadId, runId);
+    }
+    if (run.status !== 'completed') {
+        throw new Error(`Run failed with status: ${run.status}`);
+    }
+}
+
 export async function generatePostIdeas(count: number, prompt?: string): Promise<PostIdea[]> {
     try {
-
-        const messages: ChatCompletionMessageParam[] = [
-            { role: 'system', content: POST_IDEA_PROMPT },
-            { role: 'user', content: GenerateMessage(count, prompt) },
-        ];
-        console.log('messages:', messages);
-        // Call the OpenAI API with the GPT-4o model
-        const response = await openai.chat.completions.create({
-            model: 'gpt-4o', // Specify the GPT-4o model
-            messages: messages,
-            max_tokens: 9600, // Adjust based on API limits
-            temperature: 0.7, // Controls creativity
-            n: count, // Number of completions to generate
+        await openai.beta.threads.messages.create(EXISTING_THREAD_ID, {
+            role: 'user',
+            content: GenerateMessage(count, prompt)
         });
 
+        const run = await openai.beta.threads.runs.create(EXISTING_THREAD_ID, {
+            assistant_id: ASSISTANT_ID,
+        });
+        await waitForRunCompletion(EXISTING_THREAD_ID, run.id);
 
-        console.log('response from chat gpt:\n', response.choices[0].message?.content);
-        const cleanedResponse = cleanChatGPTResponse(response.choices[0].message?.content || '');
-        // Parse the JSON response
-        var ideas: PostIdea[] = JSON.parse(cleanedResponse);
-        console.log('ideas:\n', ideas);
-        console.log('ideas count:', ideas.length);
-        // If the response is not an array, make it an array
-        if (ideas.length === undefined) {
-            ideas = [JSON.parse(cleanedResponse)];
+        const messages = await openai.beta.threads.messages.list(EXISTING_THREAD_ID, {
+            limit: 1,
+            order: 'desc'
+        });
+
+        const latestMessage = messages.data[0];
+        if (!latestMessage || latestMessage.role !== 'assistant') {
+            throw new Error('No assistant message found');
         }
-        return ideas;
+
+        const textContents = latestMessage.content.filter(isTextContent);
+        if (textContents.length === 0) {
+            throw new Error('No text content in assistant response');
+        }
+
+        const combinedResponse = textContents
+            .map(content => content.text.value)
+            .join('\n');
+
+        const cleanedResponse = cleanChatGPTResponse(combinedResponse);
+        const ideas: PostResponse = JSON.parse(cleanedResponse);
+
+        if (!ideas.items?.length) {
+            throw new Error('Invalid response format from assistant');
+        }
+
+        return ideas.items;
     } catch (error) {
         console.error('Error generating post ideas:', error);
-        throw new Error(`${error}`);
+        throw error;
     }
 }
 
-export async function generatePostWithFeedback(post: IPost): Promise<PostIdea | null> {
+// Similar update for generatePostWithFeedback
+export async function generatePostWithFeedback(post: IPost): Promise<PostIdea> {
     try {
-        // Call the OpenAI API with the GPT-4o model
-        const response = await openai.chat.completions.create({
-            model: 'gpt-4o', // Specify the GPT-4o model
-            messages: [
-                { role: 'system', content: POST_IDEA_PROMPT },
-                { role: 'user', content: 'Generate a post idea for LinkedIn.' },
-                {
-                    role: 'assistant', content:
-                        `{title: ${post.title},
-                    content: ${post.content},
-                    imagePrompt: ${post.imagePrompt}}`
-                },
-                {
-                    role: 'user',
-                    content: RegenerateMessage(post)
-                }
-            ],
-            max_tokens: 9600, // Adjust based on API limits
-            temperature: 0.7, // Controls creativity
-            n: 1, // Number of completions to generate
+        await openai.beta.threads.messages.create(EXISTING_THREAD_ID, {
+            role: 'user',
+            content: RegenerateMessage(post)
         });
 
-        console.log('improved response from chat gpt:\n', response.choices[0].message?.content);
+        const run = await openai.beta.threads.runs.create(EXISTING_THREAD_ID, {
+            assistant_id: ASSISTANT_ID,
+        });
+        await waitForRunCompletion(EXISTING_THREAD_ID, run.id);
 
-        // Parse the JSON response
-        const cleanedResponse = cleanChatGPTResponse(response.choices[0].message?.content || '');
-        const idea: PostIdea = JSON.parse(cleanedResponse);
+        const messages = await openai.beta.threads.messages.list(EXISTING_THREAD_ID, {
+            limit: 1,
+            order: 'desc'
+        });
 
-        console.log('updated idea:', idea);
-        return idea;
+        const latestMessage = messages.data[0];
+        if (!latestMessage || latestMessage.role !== 'assistant') {
+            throw new Error('No assistant message found');
+        }
+
+        const textContents = latestMessage.content.filter(isTextContent);
+        if (textContents.length === 0) {
+            throw new Error('No text content in assistant response');
+        }
+
+        const combinedResponse = textContents
+            .map(content => content.text.value)
+            .join('\n');
+
+        const cleanedResponse = cleanChatGPTResponse(combinedResponse);
+        const ideas: PostResponse = JSON.parse(cleanedResponse);
+
+        if (!ideas.items?.[0]) {
+            throw new Error('Invalid response format from assistant');
+        }
+
+        return ideas.items[0];
     } catch (error) {
         console.error('Error generating post with feedback:', error);
-        throw new Error(`${error}`);
+        throw error;
     }
 }
 
-function cleanChatGPTResponse(response: string) {
-    // Remove triple backticks and trim whitespace
+function cleanChatGPTResponse(response: string): string {
     return response.replace(/```json|```/g, '').trim();
 }
