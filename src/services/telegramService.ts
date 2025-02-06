@@ -144,18 +144,20 @@ export async function processTelegramResponse(message: any) {
 
         // Generate post
         if (responseText?.toLowerCase().trim().startsWith("/generate")) {
+            // Normalize different hyphen types (— vs --)
             const normalizedText = responseText.replace(/—/g, '--');
-            const args = normalizedText.match(/--[\w-]+(=("[^"]*"|[^\s]+))?|--[\w-]+/g) || [];
+
+            // Improved regex to capture entire prompt with spaces
+            const argRegex = /--(\w+)(?:=(".*?"|.+?)(?=\s--|$))?|--(\w+)/g;
 
             const params: { [key: string]: string | boolean } = {};
+            let match;
 
-            args.forEach((arg: string) => {
-                const cleanArg = arg.replace(/^--+/, '');
-                const equalsIndex = cleanArg.indexOf('=');
-                const key = equalsIndex === -1 ? cleanArg : cleanArg.slice(0, equalsIndex);
-                const rawValue = equalsIndex === -1 ? '' : cleanArg.slice(equalsIndex + 1);
-                params[key] = rawValue.replace(/^"(.*)"$/, '$1').trim() || true;
-            });
+            while ((match = argRegex.exec(normalizedText)) !== null) {
+                const key = match[1] || match[3];
+                const value = match[2] ? match[2].replace(/^"|"$/g, '') : true;
+                if (key) params[key] = value;
+            }
 
             const prompt = params.prompt as string;
             const noMedia = 'no-media' in params;
@@ -167,7 +169,10 @@ export async function processTelegramResponse(message: any) {
                 return;
             }
 
-            console.log("Command parameters:", { prompt, noMedia });
+            console.log("Command parameters:", {
+                prompt: prompt,
+                noMedia: noMedia
+            });
 
             await axios.post(url, {
                 chat_id: message.from,
