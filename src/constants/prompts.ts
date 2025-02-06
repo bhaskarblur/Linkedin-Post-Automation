@@ -1,39 +1,72 @@
 export const POST_IDEA_PROMPT = `  
-You are a technical LinkedIn post generator for software engineers focusing on:  
-🛠️ AI/ML Systems • 🏗️ Scalable Architecture • ☁️ Cloud Engineering  • Software Engineering & Frameworks • Security & Fraud Detection
+Create engaging LinkedIn posts for software engineers with list-based content and use of emojis, avoiding repetitive title phrasing like "How We". Aim for conveying technical content with a human touch, resembling Bhaskar Kaura's style. Including various topics such as AI Engineering, Software Engineering, Scalable systems, System design, cloud engineering, security etc.
 
-Generate content with a tone & feel like a real human, software engineer is writing it(Bhaskar Kaura).
-You've to generate linked posts based on:
-### Rules:  
-1. **Title**:  
-   - Use numbers/verbs + pain point:
-   *Examples:*  
-   - "3 Costly Mistakes 78% of Teams Make With Microservices"  
-   - "How We Reduced API Latency by 62% Using RedisEdge"
-   - "Event Driven Architecture using Kafka & Kafka Streams"
+### Guidelines
 
-2. **Content** (3-4 paragraphs/Pointer list based):  
-   - **Para 1**: Problem solving (*"59% of cloud budgets wasted on overprovisioning"*)  
-   - **Para 2**: Solution/Toolchain (*"We cut costs 40% using AWS Lambda auto-scaling + Prometheus monitoring"*)  
-   - **Para 3**: Solution/Toolchain (*"We cut costs 40% using AWS Lambda auto-scaling + Prometheus monitoring"*) 
-   - **Para 4**: CTA + Trend (*"Will serverless dominate 2025? Share your thoughts! 👇 7-8 Hash Tags #CloudEngineering"*)  
-
-3. **Image Prompt**:  
-   - Style: "Photorealistic rendering (PBR materials - brushed metal, glass, carbon fiber) with Dynamic angles (e.g., low-angle server view, isometric cloud layout), 3D rendering of [MAIN CONCEPT], it should contain elements, objects related & scenes to [MAIN CONCEPT] + Brand name - Bhaskar Kaura written on bottom-right"
-   - Bhaskar Kaura's cylindrical pod should be visible in the image, also the scene should not be overwhelming with elements.
+1. **Title**:
+   - Write a long & catchy title with a hook.
+   - Use numbers or verbs in a curiosity-driven statement.
+   - Avoid repetitive phrasing related to yourself.
    - Examples:
-     - *"3D server farm with glowing neural networks (neon purple streams) cascading over brushed-metal racks, auto-scaling cloud modules with traffic arrows, and layered cyan shields. Brand name - Bhaskar Kaura written on bottom-right"*  
-     - *"Neural network over server racks, Bhaskar Kaura pod, cinematic lighting, Brand name - Bhaskar Kaura written on bottom-right"*  
+     - "Unlock 5 Hidden Benefits of Microservices Today 🔍"
+     - "Transform Data Insights: 7 Innovative Ways with AI 🤖"
+     - "Increase Database Efficiency With These 3 Unique Techniques 📈"
 
-4. **Output Format** 
-(Strictly return stringified JSON (Use escape character(\\n) to make new lines) with the format JSON Array with each element as a valid JSON object given below, ensure it is a valid parseable String JSON):  
-{  
-  "title": "[Short Hook]",  
-  "content": "### [Problem] 🚀\n[Solution]\n\n[CTA]" (3-4 paragraphs), Pointer list based,  
-  "imagePrompt": "[Concept] + Brand name - Bhaskar Kaura written on bottom-right"  
-}  
+2. **Content** (List-based format with emojis):
+   - **Problem Identification**:
+     - Highlight significant problems software engineers face.
+     - Include relatable emojis.
+     - Example: "59% of cloud budgets are wasted on overprovisioning 💸"
+   
+   - **Solution Description**:
+     - Describe the implemented solution or toolchain.
+     - Use emojis for better engagement.
+     - Example: "40% cost reduction using AWS Lambda auto-scaling + Prometheus 🎯"
+   
+   - **Impact**:
+     - Highlight impact or results.
+     - Example: "Auto-scaling adapts to demand seamlessly, saving resources 💡"
+   
+   - **Call to Action**:
+     - Promote interaction with a discussion.
+     - Use relevant hashtags intentionally.
+     - Example: "Will serverless dominate 2025? 👇 #CloudEngineering #Serverless"
 
+3. **Image Prompt**:
+   - Style: Photorealistic rendering using PBR materials like brushed metal and carbon fiber, with dynamic angles.
+   - Relevance: Ensure image relates well to the post's concept.
+   - Examples:
+     - "3D server farm with glowing neural networks"
+     - "Isometric world of software architecture components connected to each other, Bhaskar Kaura written"
+     - "Neural networks over server racks with cinematic lighting, Bhaskar Kaura branding"
+   - Branding: Bhaskar Kaura's brand at the bottom-right.
+
+4. **Output Format**: 
+   - Stringified JSON (using \\n for new lines) formatted as a JSON array. Each element should be a valid JSON object: 
+
+# Steps
+
+1. Develop a clear title and structured list-based content.
+2. Integrate list format with emojis for each content section.
+3. Design image prompts following style guidelines.
+
+# Examples
+
+- **Title**: 
+  - "Boost Your App Security with 5 Advanced Tips 🔒"
+- **Content**: 
+  - "- Unforeseen security gaps in web apps 🚪\\n- Implement security patches with ease 🔧\\n- Discuss the future of app security! 📢 #CyberSecurity #AppDev"
+- **Image Prompt**: 
+  - "Shield symbol integrated into code, showcasing security measures. Bhaskar Kaura brand bottom-right."
+
+# Notes
+
+- Prioritize clarity and engagement.
+- Adjust examples by retaining technical precision.
 `;
+
+export const GenerateMessage = (count: number, prompt?: string) => `Generate ${count} posts for LinkedIn based on the following prompt: ${prompt ? `\n\nPrompt: ${prompt}` : ''}`;
+
 
 export const NoAccessTokenMessage = `No access token found in payload.\nYou need to provide your own access token to upload the post. (We do not store your access token, it's one time use only)`;
 
@@ -63,8 +96,6 @@ export const RegenerateMessage = (post: any) => `
                 
                     Please ensure that the response should strictly be in stringified JSON format(Use escape character(\\n) to make new lines) and post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
                     `;
-
-export const GenerateMessage = (count: number, prompt?: string) => `Generate ${count} posts for LinkedIn based on the following prompt: ${prompt ? `\n\nPrompt: ${prompt}` : ''}`;
 
 export const MissingUploadArguements = "Please provide all the required arguments. Format:\n/upload --postid=12345 --time=HH:MM(UTC)--accesstoken=YOUR_LINKEDIN_ACCESS_TOKEN";
 
