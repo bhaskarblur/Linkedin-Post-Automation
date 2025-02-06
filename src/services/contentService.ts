@@ -20,7 +20,7 @@ interface PostResponse {
 // Environment variables
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID || '';
-const EXISTING_THREAD_ID = process.env.OPENAI_THREAD_ID || '';
+const EXISTING_THREAD_ID = process.env.OPENAI_ASSISTANT_THREAD_ID || '';
 
 if (!OPENAI_API_KEY || !ASSISTANT_ID || !EXISTING_THREAD_ID) {
     throw new Error('Missing required environment variables');
