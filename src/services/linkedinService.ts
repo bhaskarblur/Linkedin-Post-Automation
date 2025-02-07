@@ -69,7 +69,9 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
         console.log('Creating LinkedIn post...');
         let postData = {};
 
-        // If uploadMedia is false, then we don't need to upload the image
+        // Before making payload, need to format the content, need to replace \\n and such escapse sequence with \n
+        // Example: "Hello \\n World" -> "Hello \n World"
+        const formattedContent = post.content.replace(/\\n/g, '\n');
         if (!uploadMedia) {
             postData = {
                 author: `urn:li:person:${userId}`, // The authenticated user's LinkedIn ID
@@ -77,7 +79,7 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
                 specificContent: {
                     'com.linkedin.ugc.ShareContent': {
                         shareCommentary: {
-                            text: `${post.title}\n\n${post.content}`,
+                            text: `${post.title}\n\n${formattedContent}`,
                         },
                         shareMediaCategory: 'NONE', // Indicates no media is attached
                     },
@@ -117,14 +119,14 @@ async function scheduleLinkedInPost(post: any, time: Date, postId: string, acces
                 specificContent: {
                     'com.linkedin.ugc.ShareContent': {
                         shareCommentary: {
-                            text: `${post.title}\n\n${post.content}`,
+                            text: `${post.title}\n\n${formattedContent}`,
                         },
                         shareMediaCategory: 'IMAGE',
                         media: [
                             {
                                 status: 'READY',
                                 description: {
-                                    text: post.content,
+                                    text: formattedContent,
                                 },
                                 media: assetId,
                                 title: {

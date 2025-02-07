@@ -98,10 +98,13 @@ export async function sendTelegramMessage(title: string, content: string, images
         }
 
 
+        // Before sending the full content, need to format the content, need to replace \\n and such escapse sequence with \n
+        // Example: "Hello \\n World" -> "Hello \n World"
+        const formattedContent = content.replace(/\\n/g, '\n');
         // Send full content separately as a text message
         const textPayload = {
             chat_id: chatId || RECEIVER_TELEGRAM_CHAT_ID,
-            text: `📌 *Full Post Idea:*\n\n${content}`,
+            text: `📌 *Full Post Idea:*\n\n${formattedContent}`,
             parse_mode: "Markdown",
             reply_markup: !photoUrl ? inlineKeyboard : undefined, // If no image is sent, then set the inline keyboard to this message
 

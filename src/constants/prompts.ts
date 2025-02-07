@@ -41,9 +41,6 @@ Create engaging LinkedIn posts for software engineers with list-based content an
      - "Neural networks over server racks with cinematic lighting, Bhaskar Kaura branding"
    - Branding: Bhaskar Kaura's brand at the bottom-right.
 
-4. **Output Format**: 
-   - Stringified JSON (using \\n for new lines) formatted as a JSON array. Each element should be a valid JSON object: 
-
 # Steps
 
 1. Develop a clear title and structured list-based content.
@@ -94,7 +91,7 @@ export const RegenerateMessage = (post: any) => `
                     - *What is not good*: ${post.feedbackTopic}  
                     - *Improvement*: ${post.feedbackImprovement}
                 
-                    Please ensure that the response should strictly be in stringified JSON format(Use escape character(\\n) to make new lines) and post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
+                    Please ensure that the response should strictly be in stringified JSON format and post aligns with the suggestions, maintaining the overall quality while addressing the specific concerns.
                     `;
 
 export const MissingUploadArguements = "Please provide all the required arguments. Format:\n/upload --postid=12345 --time=HH:MM(UTC)--accesstoken=YOUR_LINKEDIN_ACCESS_TOKEN";
