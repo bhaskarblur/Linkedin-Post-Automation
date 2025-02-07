@@ -151,26 +151,15 @@ export async function processTelegramResponse(message: any) {
             // Normalize different hyphen types (— vs --)
             const normalizedText = responseText.replace(/—/g, '--');
 
-            // Improved regex to capture key-value pairs and standalone flags
-            const argRegex = /--(\w+)(?:=(?:"([^"]*)"|([^-\s]+)))?/g;
-
-            const params: { [key: string]: string | boolean | undefined } = {};
-            let match;
-
-            while ((match = argRegex.exec(normalizedText)) !== null) {
-                const key = match[1]; // Capture the key (e.g., "prompt", "no-media")
-                const value = match[2] || match[3]; // Capture the value (if any)
-
-                if (key === "no-media") {
-                    params[key] = true; // Set boolean flags to true if present
-                } else if (value !== undefined) {
-                    params[key] = value; // Assign string values normally
-                }
+            // Extract the prompt first (everything after --prompt=)
+            let prompt: string | undefined;
+            const promptMatch = normalizedText.match(/--prompt=(?:"([^"]*)"|([^-\s][^]*?)(?=\s--|\s*$))/);
+            if (promptMatch) {
+                prompt = (promptMatch[1] || promptMatch[2])?.trim();
             }
 
-            // Ensure `prompt` can be undefined if not provided
-            const prompt = params["prompt"] as string | undefined;
-            const noMedia = params["no-media"] as boolean | undefined;
+            // Check for --no-media flag
+            const noMedia = normalizedText.includes('--no-media');
 
             console.log("Command parameters:", {
                 prompt: prompt,
