@@ -151,7 +151,7 @@ export async function processTelegramResponse(message: any) {
             // Normalize different hyphen types (— vs --)
             const normalizedText = responseText.replace(/—/g, '--');
 
-            const booleanFlags = new Set(["no-media"]); // Define known boolean flags
+
             // Improved regex to capture key-value pairs and standalone flags
             const argRegex = /--(\w+)(?:=(?:"(.*?)"|([^-\s]+)))?/g;
 
@@ -162,19 +162,16 @@ export async function processTelegramResponse(message: any) {
                 const key = match[1] || match[3];
                 let value = match[2] ? match[2].replace(/^"|"$/g, '') : undefined;
 
-                if (booleanFlags.has(key)) {
+                if (key === "no-media") {
                     params[key] = true; // Set boolean flags to true if present
                 } else if (value !== undefined) {
                     params[key] = value; // Assign string values normally
                 }
             }
 
-            // Ensure `no-media` flag is `false` if missing
-            params["no-media"] = !!params["no-media"];
-
             // Ensure `prompt` can be undefined if not provided
             const prompt = params["prompt"] as string | undefined;
-            const noMedia = params["no-media"] === true;
+            const noMedia = /\b--no-media\b/.test(responseText);
 
             console.log("Command parameters:", {
                 prompt: prompt,
