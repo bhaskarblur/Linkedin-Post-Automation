@@ -161,16 +161,6 @@ export async function processTelegramResponse(message: any) {
             // Check for --no-media flag
             const noMedia = normalizedText.includes('--no-media');
 
-            // Validate input
-            if (!prompt && !noMedia) {
-                await axios.post(url, {
-                    chat_id: message.from,
-                    text: "Please provide a prompt using --prompt=\"your prompt here\" or use --no-media flag",
-                    parse_mode: undefined,
-                });
-                return;
-            }
-
             console.log("Command parameters:", {
                 prompt: prompt,
                 noMedia: noMedia
