@@ -162,14 +162,14 @@ export async function processTelegramResponse(message: any) {
                 if (key) params[key] = value;
             }
 
-            const prompt = params.prompt as string;
+            // If prompt is not present, then set it to null
+            const prompt = params.prompt as string | null;
             const noMedia = 'no-media' in params;
 
             console.log("Generating post...");
 
             if (!prompt) {
-                console.error("Prompt is required.");
-                return;
+                console.error("Prompt is empty.");
             }
 
             console.log("Command parameters:", {
