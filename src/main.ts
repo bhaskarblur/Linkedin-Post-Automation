@@ -9,10 +9,13 @@ import { savePost } from './services/postService';
 import { failedToGenerateImagesMessage, failedToGeneratePostWithFeedbackMessage, processTelegramResponse, sendTelegramMessage } from './services/telegramService';
 
 // Runs CRON at 1:00 am IST mid night
-cron.schedule('30 19 * * *', async () => {
-    console.log('CRON: Running LinkedIn Automation Bot...');
-    invokePostCreation(Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
-});
+// If ENABLE_CRON_JOB is set to true in env, then run the cron job
+if (process.env.ENABLE_CRON_JOB === 'true') {
+    cron.schedule('30 19 * * *', async () => {
+        console.log('CRON: Running LinkedIn Automation Bot...');
+        invokePostCreation(Number(process.env.DEFAULT_POST_IMAGE_COUNT) || 1);
+    });
+}
 
 const app = express();
 app.use(bodyParser.json());
