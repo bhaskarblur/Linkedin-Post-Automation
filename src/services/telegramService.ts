@@ -162,8 +162,8 @@ export async function processTelegramResponse(message: any) {
                 if (key) params[key] = value;
             }
 
-            // If prompt is not present, then set it to null
-            const prompt = params.prompt as string | null;
+            // If prompt is not present, then set it to undefined
+            const prompt = params.prompt as string | undefined;
             const noMedia = 'no-media' in params;
 
             console.log("Generating post...");
