@@ -147,19 +147,29 @@ export async function processTelegramResponse(message: any) {
 
         // Generate post
         if (responseText?.toLowerCase().trim().startsWith("/generate")) {
-            // Example: /generate --no-media --prompt="How to improve app security?"
             // Normalize different hyphen types (— vs --)
             const normalizedText = responseText.replace(/—/g, '--');
 
             // Extract the prompt first (everything after --prompt=)
             let prompt: string | undefined;
-            const promptMatch = normalizedText.match(/--prompt=(?:"([^"]*)"|([^-\s][^]*?)(?=\s--|\s*$))/);
+            // Update regex to handle both quoted and unquoted prompts
+            const promptMatch = normalizedText.match(/--prompt=(?:"([^"]*)"|([^"]\S*(?:\s+[^-]\S*)*))(?:\s+--|$)/);
             if (promptMatch) {
                 prompt = (promptMatch[1] || promptMatch[2])?.trim();
             }
 
             // Check for --no-media flag
             const noMedia = normalizedText.includes('--no-media');
+
+            // Validate input
+            if (!prompt && !noMedia) {
+                await axios.post(url, {
+                    chat_id: message.from,
+                    text: "Please provide a prompt using --prompt=\"your prompt here\" or use --no-media flag",
+                    parse_mode: undefined,
+                });
+                return;
+            }
 
             console.log("Command parameters:", {
                 prompt: prompt,
