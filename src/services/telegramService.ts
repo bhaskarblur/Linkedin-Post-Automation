@@ -147,30 +147,32 @@ export async function processTelegramResponse(message: any) {
 
         // Generate post
         if (responseText?.toLowerCase().trim().startsWith("/generate")) {
+            // Example /generate --no-media --prompt=How to improve app security?
             // Normalize different hyphen types (— vs --)
             const normalizedText = responseText.replace(/—/g, '--');
 
-            // Improved regex to capture entire prompt with spaces
-            const argRegex = /--(\w+)(?:=(".*?"|.+?)(?=\s--|$))?|--(\w+)/g;
+            // Improved regex to capture key-value pairs and standalone flags
+            const argRegex = /--(\w+)(?:=(?:"(.*?)"|([^-\s]+)))?/g;
 
-            const params: { [key: string]: string | boolean } = {};
+            const params: { [key: string]: string | boolean | undefined } = {};
             let match;
+
+            const booleanFlags = new Set(["no-media"]); // Add other flags here
 
             while ((match = argRegex.exec(normalizedText)) !== null) {
                 const key = match[1] || match[3];
-                const value = match[2] ? match[2].replace(/^"|"$/g, '') : true;
-                if (key) params[key] = value;
+                const value = match[2] ? match[2].replace(/^"|"$/g, '') : undefined;
+
+                if (booleanFlags.has(key) && value === undefined) {
+                    params[key] = true; // Set only known boolean flags to true
+                } else {
+                    params[key] = value;
+                }
             }
 
-            // If prompt is not present, then set it to undefined
-            const prompt = params.prompt as string | undefined;
-            const noMedia = 'no-media' in params;
-
-            console.log("Generating post...");
-
-            if (!prompt) {
-                console.error("Prompt is empty.");
-            }
+            // Ensure `prompt` can be undefined if not provided
+            const prompt = params["prompt"] as string | undefined;
+            const noMedia = params["no-media"] === true;
 
             console.log("Command parameters:", {
                 prompt: prompt,
@@ -179,7 +181,7 @@ export async function processTelegramResponse(message: any) {
 
             await axios.post(url, {
                 chat_id: message.from,
-                text: `Generating post: "${prompt}" ${noMedia ? "without image" : ""}`,
+                text: `Generating post: ${prompt ? `"${prompt}"` : ""} ${noMedia ? "without image" : ""}`,
             });
 
             await invokePostCreation(1, prompt, !noMedia, message.from);
