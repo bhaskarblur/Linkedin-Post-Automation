@@ -147,20 +147,19 @@ export async function processTelegramResponse(message: any) {
 
         // Generate post
         if (responseText?.toLowerCase().trim().startsWith("/generate")) {
-            // Example /generate --no-media --prompt=How to improve app security?
+            // Example: /generate --no-media --prompt="How to improve app security?"
             // Normalize different hyphen types (— vs --)
             const normalizedText = responseText.replace(/—/g, '--');
 
-
             // Improved regex to capture key-value pairs and standalone flags
-            const argRegex = /--(\w+)(?:=(?:"(.*?)"|([^-\s]+)))?/g;
+            const argRegex = /--(\w+)(?:=(?:"([^"]*)"|([^-\s]+)))?/g;
 
             const params: { [key: string]: string | boolean | undefined } = {};
             let match;
 
             while ((match = argRegex.exec(normalizedText)) !== null) {
-                const key = match[1] || match[3];
-                let value = match[2] ? match[2].replace(/^"|"$/g, '') : undefined;
+                const key = match[1]; // Capture the key (e.g., "prompt", "no-media")
+                const value = match[2] || match[3]; // Capture the value (if any)
 
                 if (key === "no-media") {
                     params[key] = true; // Set boolean flags to true if present
@@ -171,7 +170,7 @@ export async function processTelegramResponse(message: any) {
 
             // Ensure `prompt` can be undefined if not provided
             const prompt = params["prompt"] as string | undefined;
-            const noMedia = /\b--no-media\b/.test(responseText);
+            const noMedia = params["no-media"] as boolean | undefined;
 
             console.log("Command parameters:", {
                 prompt: prompt,
@@ -186,7 +185,6 @@ export async function processTelegramResponse(message: any) {
             await invokePostCreation(1, prompt, !noMedia, message.from);
             return;
         }
-
         // Receive improvement message
         if (responseText?.toLowerCase().trim().startsWith("/improve")) {
             // Example: /improve --postid=12345 --reason=image --feedback=
