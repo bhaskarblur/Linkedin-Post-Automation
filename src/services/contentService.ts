@@ -36,6 +36,9 @@ function isTextContent(content: MessageContent): content is Extract<MessageConte
 // Add delay utility function
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Add message storage for retries
+const messageStore = new Map<string, string>();
+
 // Add function to clear thread messages
 async function clearThread(threadId: string) {
     try {
@@ -73,11 +76,11 @@ async function waitForRunCompletion(threadId: string, runId: string, maxRetries 
         await delay(5000); // Wait 5 seconds after clearing
 
         // Recreate the message in the cleared thread
-        const messageContent = run.metadata?.original_message;
-        if (messageContent) {
+        const originalMessage = messageStore.get(runId);
+        if (originalMessage) {
             await openai.beta.threads.messages.create(threadId, {
                 role: 'user',
-                content: messageContent as string
+                content: originalMessage
             });
         }
 
@@ -85,6 +88,9 @@ async function waitForRunCompletion(threadId: string, runId: string, maxRetries 
         run = await openai.beta.threads.runs.create(threadId, {
             assistant_id: ASSISTANT_ID,
         });
+
+        // Store new run ID and message
+        messageStore.set(run.id, originalMessage || '');
 
         // Wait for the new run
         while (run.status === 'queued' || run.status === 'in_progress') {
@@ -94,6 +100,9 @@ async function waitForRunCompletion(threadId: string, runId: string, maxRetries 
 
         retryCount++;
     }
+
+    // Clean up stored message
+    messageStore.delete(runId);
 
     // Log run details for debugging
     console.log('Final run details:', JSON.stringify(run, null, 2));
@@ -110,17 +119,22 @@ async function waitForRunCompletion(threadId: string, runId: string, maxRetries 
 
 export async function generatePostIdeas(count: number, prompt?: string): Promise<PostIdea[]> {
     try {
-        // Store original message for potential retries
         const message = prompt ?
             GenerateMessage(Math.min(count, 2), prompt) :
             GenerateMessage(Math.min(count, 3));
 
+        // Create initial message
+        await openai.beta.threads.messages.create(EXISTING_THREAD_ID, {
+            role: 'user',
+            content: message
+        });
+
         const run = await openai.beta.threads.runs.create(EXISTING_THREAD_ID, {
             assistant_id: ASSISTANT_ID,
-            metadata: {
-                original_message: message // Store the message for retries
-            }
         });
+
+        // Store message for potential retries
+        messageStore.set(run.id, message);
 
         await waitForRunCompletion(EXISTING_THREAD_ID, run.id);
 
@@ -166,12 +180,18 @@ export async function generatePostWithFeedback(post: IPost): Promise<PostIdea> {
     try {
         const message = RegenerateMessage(post);
 
+        // Create initial message
+        await openai.beta.threads.messages.create(EXISTING_THREAD_ID, {
+            role: 'user',
+            content: message
+        });
+
         const run = await openai.beta.threads.runs.create(EXISTING_THREAD_ID, {
             assistant_id: ASSISTANT_ID,
-            metadata: {
-                original_message: message
-            }
         });
+
+        // Store message for potential retries
+        messageStore.set(run.id, message);
 
         await waitForRunCompletion(EXISTING_THREAD_ID, run.id);
 
