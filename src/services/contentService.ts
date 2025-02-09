@@ -39,6 +39,8 @@ async function waitForRunCompletion(threadId: string, runId: string) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         run = await openai.beta.threads.runs.retrieve(threadId, runId);
     }
+    // Log run details for debugging
+    console.log('Final run details:', JSON.stringify(run, null, 2));
     if (run.status !== 'completed') {
         throw new Error(`Run failed with status: ${run.status}`);
     }
